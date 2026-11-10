@@ -1,59 +1,155 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { CalendarClock, Radio, Ticket } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import { LiveCard } from "@/components/lux/cards";
+import { Badge, EmptyState, SectionHeading } from "@/components/lux/ui";
+import { PageHero, SiteLayout } from "@/components/site/SiteLayout";
+import { upcomingLive } from "@/lib/selectors";
+import { useApp } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/salones")({
   head: () => ({
     meta: [
       { title: "Salones en vivo — Xclusive" },
-      { name: "description", content: "Transmisiones privadas y eventos cifrados para miembros VIP." },
-      { property: "og:title", content: "Salones en vivo — Xclusive" },
-      { property: "og:description", content: "Transmisiones privadas para miembros del club Xclusive." },
+      {
+        name: "description",
+        content:
+          "Salas en vivo, tertulias y sesiones privadas con cupo limitado. Simulación editorial en Modo DEMO.",
+      },
     ],
   }),
-  component: Salones,
+  component: SalonesPage,
 });
 
-const rooms = [
-  { name: "Salón Carmesí", host: "Valentina R.", live: true, viewers: 128, tier: "VIP Club" },
-  { name: "Noche de Obsidiana", host: "Selene M.", live: true, viewers: 64, tier: "Inner Circle" },
-  { name: "Jardín Prohibido", host: "Aurora L.", live: false, time: "Hoy · 22:00", tier: "VIP Club" },
-  { name: "La Gota de Plata", host: "Isabella D.", live: false, time: "Viernes · 23:00", tier: "Inner Circle" },
-];
+function SalonesPage() {
+  const { state } = useApp();
+  const [tab, setTab] = useState<"live" | "scheduled" | "ended">("live");
 
-function Salones() {
+  const lives = useMemo(
+    () =>
+      state.creators.flatMap((c) =>
+        c.rooms.filter((r) => r.status === "live").map((room) => ({ creator: c, room })),
+      ),
+    [state.creators],
+  );
+  const scheduled = useMemo(() => upcomingLive(state), [state]);
+  const ended = useMemo(
+    () =>
+      state.creators.flatMap((c) =>
+        c.rooms.filter((r) => r.status === "ended").map((room) => ({ creator: c, room })),
+      ),
+    [state.creators],
+  );
+
+  const current = tab === "live" ? lives : tab === "scheduled" ? scheduled : ended;
+
   return (
-    <main className="relative min-h-screen overflow-hidden pt-36 pb-32">
-      <div className="absolute inset-0 bg-cherry-haze" />
-      <div className="relative mx-auto max-w-6xl px-6">
-        <p className="eyebrow">Transmisiones privadas</p>
-        <h1 className="mt-4 text-6xl md:text-7xl">Salones <em className="text-silver-gradient">en vivo.</em></h1>
-        <div className="mt-16 grid gap-6 sm:grid-cols-2">
-          {rooms.map((r) => (
-            <article key={r.name} className="group relative aspect-[16/10] overflow-hidden rounded-3xl hairline bg-card">
-              <div className="absolute inset-0 bg-cherry-haze transition-opacity group-hover:opacity-60" />
-              <div className="absolute -bottom-20 -right-10 h-64 w-64 rounded-full bg-glow/20 blur-3xl animate-glow" />
-              <div className="relative flex h-full flex-col justify-between p-8">
-                <div className="flex items-center justify-between">
-                  {r.live ? (
-                    <span className="flex items-center gap-2 rounded-full bg-lacquer px-3 py-1 text-xs text-primary-foreground">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground animate-pulse" /> EN VIVO · {r.viewers}
-                    </span>
-                  ) : (
-                    <span className="eyebrow">{r.time}</span>
-                  )}
-                  <span className="eyebrow">{r.tier}</span>
-                </div>
-                <div>
-                  <h2 className="text-4xl">{r.name}</h2>
-                  <p className="mt-1 text-sm font-light text-muted-foreground">con {r.host}</p>
-                </div>
+    <SiteLayout>
+      <PageHero
+        eyebrow="Salones"
+        title={
+          <>
+            El club ocurre
+            <br />
+            <em className="text-silver-sheen">en tiempo real.</em>
+          </>
+        }
+        description="Salones abiertos, sesiones para miembros y tertulias con boleto. En este prototipo la audiencia, las propinas y la transmisión son simuladas."
+        aside={
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              ["En vivo", lives.length],
+              ["Programados", scheduled.length],
+              ["Archivo", ended.length],
+            ].map(([label, value]) => (
+              <div
+                key={String(label)}
+                className="rounded-xl border border-hairline bg-background/60 p-3 text-center backdrop-blur"
+              >
+                <p className="font-serif text-2xl text-pearl">{value}</p>
+                <p className="mt-1 text-[0.56rem] uppercase tracking-[0.14em] text-muted-foreground">
+                  {label}
+                </p>
               </div>
-            </article>
+            ))}
+          </div>
+        }
+      />
+
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-1 rounded-full border border-hairline bg-black/20 p-1">
+            {(
+              [
+                ["live", "Ahora", <Radio key="i" className="h-3.5 w-3.5" />],
+                ["scheduled", "Programados", <CalendarClock key="i" className="h-3.5 w-3.5" />],
+                ["ended", "Archivo", <Ticket key="i" className="h-3.5 w-3.5" />],
+              ] as const
+            ).map(([value, label, icon]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTab(value)}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs transition-colors",
+                  tab === value
+                    ? "bg-signal text-primary-foreground"
+                    : "text-muted-foreground hover:text-pearl",
+                )}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+          <Badge tone="signal">Todos los salones son DEMO</Badge>
+        </div>
+
+        {current.length === 0 ? (
+          <div className="mt-8">
+            <EmptyState
+              title={
+                tab === "live"
+                  ? "No hay salones en vivo ahora."
+                  : tab === "scheduled"
+                    ? "No hay salones programados."
+                    : "El archivo está vacío."
+              }
+              description="Vuelve más tarde o revisa los otros horarios. Puedes seguir a una creadora para recibir avisos."
+              icon={<Radio className="h-6 w-6" />}
+            />
+          </div>
+        ) : (
+          <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {current.map(({ creator, room }) => (
+              <LiveCard key={room.id} room={room} creator={creator} />
+            ))}
+          </div>
+        )}
+
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
+          {[
+            {
+              title: "Acceso por nivel",
+              body: "Un salón puede ser abierto, exclusivo para miembros o requerir boleto. El acceso se valida contra tu membresía activa.",
+            },
+            {
+              title: "Propinas en vivo",
+              body: "Las propinas se registran con su comisión visible. En DEMO no generan saldo retirable ni obligación de pago.",
+            },
+            {
+              title: "Moderación presente",
+              body: "Puedes reportar un salón o un mensaje. Los reportes reciben identificador y estado, y se conserva evidencia.",
+            },
+          ].map((item) => (
+            <div key={item.title} className="rounded-xl border border-hairline bg-card/40 p-5">
+              <p className="text-sm text-pearl">{item.title}</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{item.body}</p>
+            </div>
           ))}
         </div>
-        <div className="mt-16 text-center">
-          <Link to="/membresias" className="rounded-full bg-lacquer px-8 py-3.5 text-primary-foreground shadow-glow">Desbloquear salones</Link>
-        </div>
-      </div>
-    </main>
+      </section>
+    </SiteLayout>
   );
 }

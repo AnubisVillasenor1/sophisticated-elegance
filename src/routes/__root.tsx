@@ -10,25 +10,37 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import appCss from "../styles.css?url";
+import { AgeGate } from "../components/site/AgeGate";
+import { CookieConsent } from "../components/site/CookieConsent";
+import { Toaster } from "../components/ui/sonner";
+import { AppProvider } from "../lib/store";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+      <div className="max-w-lg text-center">
+        <p className="eyebrow">Error 404</p>
+        <h1 className="mt-4 font-serif text-6xl leading-none text-silver-sheen">
+          Esta puerta no existe.
+        </h1>
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          La página que buscas se movió, se cerró o nunca estuvo en el club. Puedes volver al inicio
+          o explorar las creadoras activas.
         </p>
-        <div className="mt-6">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex h-11 items-center justify-center rounded-full bg-signal px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-candy"
           >
-            Go home
+            Volver al inicio
+          </Link>
+          <Link
+            to="/explorar"
+            className="inline-flex h-11 items-center justify-center rounded-full border border-hairline px-6 text-sm text-pearl transition-colors hover:bg-white/5"
+          >
+            Explorar creadoras
           </Link>
         </div>
       </div>
@@ -37,36 +49,36 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
   const router = useRouter();
   useEffect(() => {
+    console.error(error);
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+      <div className="max-w-lg text-center">
+        <p className="eyebrow">Algo interrumpió la función</p>
+        <h1 className="mt-4 font-serif text-5xl leading-none text-pearl">La página no cargó.</h1>
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          Ocurrió un error inesperado. Puedes intentar de nuevo o volver al inicio. Si el problema
+          persiste, escríbenos a soporte.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex h-11 items-center justify-center rounded-full bg-signal px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-candy"
           >
-            Try again
+            Intentar de nuevo
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex h-11 items-center justify-center rounded-full border border-hairline px-6 text-sm text-pearl transition-colors hover:bg-white/5"
           >
-            Go home
+            Ir al inicio
           </a>
         </div>
       </div>
@@ -76,30 +88,34 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
-    // Replace these placeholders with the app's name and description when first building the app.
-    // Each content route, / included, must still set its own head(). Never add og:image or
-    // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Xclusive — Un paraíso prohibido" },
-      { name: "description", content: "Xclusive by TAMV Online Network: club privado de creadoras." },
+      {
+        name: "description",
+        content:
+          "Club privado editorial para creadoras independientes. Membresías, salones en vivo y bóveda protegida.",
+      },
+      { name: "author", content: "TAMV Online Network" },
+      { name: "theme-color", content: "#0d0709" },
       { property: "og:title", content: "Xclusive — Un paraíso prohibido" },
-      { property: "og:description", content: "Club privado de creadoras by TAMV Online Network." },
+      {
+        property: "og:description",
+        content:
+          "Club privado editorial para creadoras independientes y sus comunidades más cercanas.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap",
       },
     ],
   }),
@@ -128,10 +144,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <SiteHeader />
-      <Outlet />
-      <SiteFooter />
+      <AppProvider>
+        <Outlet />
+        <AgeGate />
+        <CookieConsent />
+        <Toaster position="top-center" />
+      </AppProvider>
     </QueryClientProvider>
   );
 }

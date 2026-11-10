@@ -10,19 +10,34 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AyudaRouteImport } from './routes/ayuda'
+import { Route as BovedaRouteImport } from './routes/boveda'
+import { Route as ClipsRouteImport } from './routes/clips'
+import { Route as CreadorasRouteImport } from './routes/creadoras'
+import { Route as CuentaRouteImport } from './routes/cuenta'
+import { Route as EcosistemaRouteImport } from './routes/ecosistema'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as EstudioRouteImport } from './routes/estudio'
+import { Route as ExplorarRouteImport } from './routes/explorar'
 import { Route as MembresiasRouteImport } from './routes/membresias'
+import { Route as MensajesRouteImport } from './routes/mensajes'
+import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as SalonesRouteImport } from './routes/salones'
-import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated/cuenta'
+import { Route as CreadoraSlugRouteImport } from './routes/creadora.$slug'
+import { Route as LegalIndexRouteImport } from './routes/legal.index'
+import { Route as LegalDocRouteImport } from './routes/legal.$doc'
+import { Route as SalonIdRouteImport } from './routes/salon.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -30,9 +45,64 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AyudaRoute = AyudaRouteImport.update({
+  id: '/ayuda',
+  path: '/ayuda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BovedaRoute = BovedaRouteImport.update({
+  id: '/boveda',
+  path: '/boveda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClipsRoute = ClipsRouteImport.update({
+  id: '/clips',
+  path: '/clips',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreadorasRoute = CreadorasRouteImport.update({
+  id: '/creadoras',
+  path: '/creadoras',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuentaRoute = CuentaRouteImport.update({
+  id: '/cuenta',
+  path: '/cuenta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcosistemaRoute = EcosistemaRouteImport.update({
+  id: '/ecosistema',
+  path: '/ecosistema',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EstudioRoute = EstudioRouteImport.update({
+  id: '/estudio',
+  path: '/estudio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExplorarRoute = ExplorarRouteImport.update({
+  id: '/explorar',
+  path: '/explorar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MembresiasRoute = MembresiasRouteImport.update({
   id: '/membresias',
   path: '/membresias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MensajesRoute = MensajesRouteImport.update({
+  id: '/mensajes',
+  path: '/mensajes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegistroRoute = RegistroRouteImport.update({
+  id: '/registro',
+  path: '/registro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SalonesRoute = SalonesRouteImport.update({
@@ -40,56 +110,184 @@ const SalonesRoute = SalonesRouteImport.update({
   path: '/salones',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
-  id: '/cuenta',
-  path: '/cuenta',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const CreadoraSlugRoute = CreadoraSlugRouteImport.update({
+  id: '/creadora/$slug',
+  path: '/creadora/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalIndexRoute = LegalIndexRouteImport.update({
+  id: '/legal/',
+  path: '/legal/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalDocRoute = LegalDocRouteImport.update({
+  id: '/legal/$doc',
+  path: '/legal/$doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalonIdRoute = SalonIdRouteImport.update({
+  id: '/salon/$id',
+  path: '/salon/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/ayuda': typeof AyudaRoute
+  '/boveda': typeof BovedaRoute
+  '/clips': typeof ClipsRoute
+  '/creadoras': typeof CreadorasRoute
+  '/cuenta': typeof CuentaRoute
+  '/ecosistema': typeof EcosistemaRoute
+  '/entrar': typeof EntrarRoute
+  '/estudio': typeof EstudioRoute
+  '/explorar': typeof ExplorarRoute
   '/membresias': typeof MembresiasRoute
+  '/mensajes': typeof MensajesRoute
+  '/registro': typeof RegistroRoute
   '/salones': typeof SalonesRoute
-  '/cuenta': typeof AuthenticatedCuentaRoute
+  '/creadora/$slug': typeof CreadoraSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
+  '/salon/$id': typeof SalonIdRoute
+  '/legal/': typeof LegalIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/ayuda': typeof AyudaRoute
+  '/boveda': typeof BovedaRoute
+  '/clips': typeof ClipsRoute
+  '/creadoras': typeof CreadorasRoute
+  '/cuenta': typeof CuentaRoute
+  '/ecosistema': typeof EcosistemaRoute
+  '/entrar': typeof EntrarRoute
+  '/estudio': typeof EstudioRoute
+  '/explorar': typeof ExplorarRoute
   '/membresias': typeof MembresiasRoute
+  '/mensajes': typeof MensajesRoute
+  '/registro': typeof RegistroRoute
   '/salones': typeof SalonesRoute
-  '/cuenta': typeof AuthenticatedCuentaRoute
+  '/creadora/$slug': typeof CreadoraSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
+  '/salon/$id': typeof SalonIdRoute
+  '/legal': typeof LegalIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/ayuda': typeof AyudaRoute
+  '/boveda': typeof BovedaRoute
+  '/clips': typeof ClipsRoute
+  '/creadoras': typeof CreadorasRoute
+  '/cuenta': typeof CuentaRoute
+  '/ecosistema': typeof EcosistemaRoute
+  '/entrar': typeof EntrarRoute
+  '/estudio': typeof EstudioRoute
+  '/explorar': typeof ExplorarRoute
   '/membresias': typeof MembresiasRoute
+  '/mensajes': typeof MensajesRoute
+  '/registro': typeof RegistroRoute
   '/salones': typeof SalonesRoute
-  '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
+  '/creadora/$slug': typeof CreadoraSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
+  '/salon/$id': typeof SalonIdRoute
+  '/legal/': typeof LegalIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/membresias' | '/salones' | '/cuenta'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/ayuda'
+    | '/boveda'
+    | '/clips'
+    | '/creadoras'
+    | '/cuenta'
+    | '/ecosistema'
+    | '/entrar'
+    | '/estudio'
+    | '/explorar'
+    | '/membresias'
+    | '/mensajes'
+    | '/registro'
+    | '/salones'
+    | '/creadora/$slug'
+    | '/legal/$doc'
+    | '/salon/$id'
+    | '/legal/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/membresias' | '/salones' | '/cuenta'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/ayuda'
+    | '/boveda'
+    | '/clips'
+    | '/creadoras'
+    | '/cuenta'
+    | '/ecosistema'
+    | '/entrar'
+    | '/estudio'
+    | '/explorar'
+    | '/membresias'
+    | '/mensajes'
+    | '/registro'
+    | '/salones'
+    | '/creadora/$slug'
+    | '/legal/$doc'
+    | '/salon/$id'
+    | '/legal'
   id:
     | '__root__'
     | '/'
-    | '/_authenticated'
+    | '/admin'
     | '/auth'
+    | '/ayuda'
+    | '/boveda'
+    | '/clips'
+    | '/creadoras'
+    | '/cuenta'
+    | '/ecosistema'
+    | '/entrar'
+    | '/estudio'
+    | '/explorar'
     | '/membresias'
+    | '/mensajes'
+    | '/registro'
     | '/salones'
-    | '/_authenticated/cuenta'
+    | '/creadora/$slug'
+    | '/legal/$doc'
+    | '/salon/$id'
+    | '/legal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  AyudaRoute: typeof AyudaRoute
+  BovedaRoute: typeof BovedaRoute
+  ClipsRoute: typeof ClipsRoute
+  CreadorasRoute: typeof CreadorasRoute
+  CuentaRoute: typeof CuentaRoute
+  EcosistemaRoute: typeof EcosistemaRoute
+  EntrarRoute: typeof EntrarRoute
+  EstudioRoute: typeof EstudioRoute
+  ExplorarRoute: typeof ExplorarRoute
   MembresiasRoute: typeof MembresiasRoute
+  MensajesRoute: typeof MensajesRoute
+  RegistroRoute: typeof RegistroRoute
   SalonesRoute: typeof SalonesRoute
+  CreadoraSlugRoute: typeof CreadoraSlugRoute
+  LegalDocRoute: typeof LegalDocRoute
+  SalonIdRoute: typeof SalonIdRoute
+  LegalIndexRoute: typeof LegalIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -101,11 +299,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -115,11 +313,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ayuda': {
+      id: '/ayuda'
+      path: '/ayuda'
+      fullPath: '/ayuda'
+      preLoaderRoute: typeof AyudaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/boveda': {
+      id: '/boveda'
+      path: '/boveda'
+      fullPath: '/boveda'
+      preLoaderRoute: typeof BovedaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clips': {
+      id: '/clips'
+      path: '/clips'
+      fullPath: '/clips'
+      preLoaderRoute: typeof ClipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creadoras': {
+      id: '/creadoras'
+      path: '/creadoras'
+      fullPath: '/creadoras'
+      preLoaderRoute: typeof CreadorasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cuenta': {
+      id: '/cuenta'
+      path: '/cuenta'
+      fullPath: '/cuenta'
+      preLoaderRoute: typeof CuentaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecosistema': {
+      id: '/ecosistema'
+      path: '/ecosistema'
+      fullPath: '/ecosistema'
+      preLoaderRoute: typeof EcosistemaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/estudio': {
+      id: '/estudio'
+      path: '/estudio'
+      fullPath: '/estudio'
+      preLoaderRoute: typeof EstudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explorar': {
+      id: '/explorar'
+      path: '/explorar'
+      fullPath: '/explorar'
+      preLoaderRoute: typeof ExplorarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/membresias': {
       id: '/membresias'
       path: '/membresias'
       fullPath: '/membresias'
       preLoaderRoute: typeof MembresiasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mensajes': {
+      id: '/mensajes'
+      path: '/mensajes'
+      fullPath: '/mensajes'
+      preLoaderRoute: typeof MensajesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/registro': {
+      id: '/registro'
+      path: '/registro'
+      fullPath: '/registro'
+      preLoaderRoute: typeof RegistroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/salones': {
@@ -129,33 +404,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SalonesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/cuenta': {
-      id: '/_authenticated/cuenta'
-      path: '/cuenta'
-      fullPath: '/cuenta'
-      preLoaderRoute: typeof AuthenticatedCuentaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/creadora/$slug': {
+      id: '/creadora/$slug'
+      path: '/creadora/$slug'
+      fullPath: '/creadora/$slug'
+      preLoaderRoute: typeof CreadoraSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/': {
+      id: '/legal/'
+      path: '/legal'
+      fullPath: '/legal/'
+      preLoaderRoute: typeof LegalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/$doc': {
+      id: '/legal/$doc'
+      path: '/legal/$doc'
+      fullPath: '/legal/$doc'
+      preLoaderRoute: typeof LegalDocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salon/$id': {
+      id: '/salon/$id'
+      path: '/salon/$id'
+      fullPath: '/salon/$id'
+      preLoaderRoute: typeof SalonIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
-}
-
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
-}
-
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  AyudaRoute: AyudaRoute,
+  BovedaRoute: BovedaRoute,
+  ClipsRoute: ClipsRoute,
+  CreadorasRoute: CreadorasRoute,
+  CuentaRoute: CuentaRoute,
+  EcosistemaRoute: EcosistemaRoute,
+  EntrarRoute: EntrarRoute,
+  EstudioRoute: EstudioRoute,
+  ExplorarRoute: ExplorarRoute,
   MembresiasRoute: MembresiasRoute,
+  MensajesRoute: MensajesRoute,
+  RegistroRoute: RegistroRoute,
   SalonesRoute: SalonesRoute,
+  CreadoraSlugRoute: CreadoraSlugRoute,
+  LegalDocRoute: LegalDocRoute,
+  SalonIdRoute: SalonIdRoute,
+  LegalIndexRoute: LegalIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

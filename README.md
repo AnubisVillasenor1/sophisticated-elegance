@@ -1,4 +1,14 @@
-# Sophisticated Elegance
+# Sophisticated Elegance — Xclusive
+
+Plataforma editorial de creadoras independientes: membresías, clips, salones en vivo, bóveda protegida, mensajería, estudio de creadora, administración y centro legal. Implementación funcional en **Modo DEMO**: sin cobros, retiros ni contenido adulto.
+
+- **Demo local:** `npm install` → `npm run dev` → `http://localhost:8080`
+- **Cuentas:** `fan@xclusive.demo`, `valentina@xclusive.demo`, `admin@xclusive.demo` · contraseña `demo1234`
+- **Despliegue:** [DEPLOY.md](DEPLOY.md)
+- **Blueprint de producción:** [docs/PRODUCCION.md](docs/PRODUCCION.md)
+- **Legal:** `/legal` (nueve documentos versionados, aceptación con hash y derechos ARCO)
+
+> El contenido adulto permanece deshabilitado hasta completar verificación de edad certificada, consentimiento documentado, revisión legal y aprobación del PSP. Los textos legales son borradores y requieren revisión profesional.
 
 crea el proyeto con una elegancia sofisticada
 
@@ -17,8 +27,25 @@ Continue developing this project in the [Lovable editor](https://lovable.dev/pro
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+git clone https://github.com/AnubisVillasenor1/sophisticated-elegance.git
+cd sophisticated-elegance
+npm install
 npm run dev
 ```
+
+### Comprobaciones antes de publicar
+
+```sh
+npm run build
+npx tsc --noEmit
+npx vitest run
+npm run lint
+```
+
+### Estructura
+
+- `src/lib/` — dominio DEMO: tipos, semilla, selectores, legal, plataformas, acciones y estado (`store.tsx`).
+- `src/components/lux/` — sistema visual: primitivas, tarjetas, checkout, comisiones y reportes.
+- `src/components/site/` — cabecera, pie, layouts públicos, aviso de edad y cookies.
+- `src/routes/` — páginas públicas, estudio de creadora, bóveda, mensajes, cuenta, administración y centro legal.
+- `src/integrations/` — integraciones de Lovable/Supabase conservadas; el DEMO no las requiere.
