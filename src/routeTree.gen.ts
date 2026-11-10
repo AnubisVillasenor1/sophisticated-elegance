@@ -10,12 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as MembresiasRouteImport } from './routes/membresias'
 import { Route as SalonesRouteImport } from './routes/salones'
+import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated/cuenta'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembresiasRoute = MembresiasRouteImport.update({
@@ -28,33 +40,54 @@ const SalonesRoute = SalonesRouteImport.update({
   path: '/salones',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
+  id: '/cuenta',
+  path: '/cuenta',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/membresias': typeof MembresiasRoute
   '/salones': typeof SalonesRoute
+  '/cuenta': typeof AuthenticatedCuentaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/membresias': typeof MembresiasRoute
   '/salones': typeof SalonesRoute
+  '/cuenta': typeof AuthenticatedCuentaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/membresias': typeof MembresiasRoute
   '/salones': typeof SalonesRoute
+  '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/membresias' | '/salones'
+  fullPaths: '/' | '/auth' | '/membresias' | '/salones' | '/cuenta'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/membresias' | '/salones'
-  id: '__root__' | '/' | '/membresias' | '/salones'
+  to: '/' | '/auth' | '/membresias' | '/salones' | '/cuenta'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/membresias'
+    | '/salones'
+    | '/_authenticated/cuenta'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   MembresiasRoute: typeof MembresiasRoute
   SalonesRoute: typeof SalonesRoute
 }
@@ -66,6 +99,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/membresias': {
@@ -82,11 +129,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SalonesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/cuenta': {
+      id: '/_authenticated/cuenta'
+      path: '/cuenta'
+      fullPath: '/cuenta'
+      preLoaderRoute: typeof AuthenticatedCuentaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   MembresiasRoute: MembresiasRoute,
   SalonesRoute: SalonesRoute,
 }
