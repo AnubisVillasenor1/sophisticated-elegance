@@ -102,6 +102,7 @@ Mantén la rama en estado compilable: cada push puede sincronizarse con Lovable.
 - [ ] Administración: aprobar solicitud, resolver reporte, resolver ARCO y marcar retiro.
 - [ ] Los importes muestran el sello DEMO y no se solicita tarjeta.
 - [ ] El contenido adulto permanece deshabilitado.
+- [ ] `/auth` redirige a `/entrar` y `/membresias` redirige a `/explorar`.
 
 ## 6. Reversión
 
