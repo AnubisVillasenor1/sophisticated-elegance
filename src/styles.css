@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+﻿@import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
@@ -334,7 +334,7 @@
   text-wrap: pretty;
 }
 
-@utility cover-art {
+@utility cover-base {
   position: relative;
   overflow: hidden;
   background-color: var(--card);
@@ -349,83 +349,61 @@
   }
 }
 
+.cover-noir,
+.cover-sol,
+.cover-mystic,
+.cover-vinyl,
+.cover-vale,
+.cover-art,
+.cover-marea,
+.cover-jade,
+.cover-ai,
+.cover-obsidian,
+.cover-cherry,
+.cover-amber,
+.cover-rose {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 .cover-noir {
-  background:
-    radial-gradient(90% 60% at 18% 10%, oklch(0.32 0.09 20 / 0.9), transparent 60%),
-    radial-gradient(70% 70% at 90% 90%, oklch(0.22 0.06 280 / 0.8), transparent 65%),
-    linear-gradient(150deg, #12070b 0%, #1e0a12 48%, #08060a 100%);
+  background-image: url("/covers/noir.webp");
 }
 .cover-sol {
-  background:
-    radial-gradient(70% 55% at 70% 18%, oklch(0.85 0.13 80 / 0.75), transparent 60%),
-    radial-gradient(60% 60% at 15% 85%, oklch(0.45 0.09 30 / 0.8), transparent 65%),
-    linear-gradient(160deg, #2a160c 0%, #170d0a 60%, #0c0908 100%);
+  background-image: url("/covers/sol.webp");
 }
 .cover-mystic {
-  background:
-    radial-gradient(55% 50% at 30% 25%, oklch(0.55 0.12 300 / 0.7), transparent 65%),
-    radial-gradient(60% 60% at 80% 80%, oklch(0.4 0.08 190 / 0.6), transparent 65%),
-    linear-gradient(150deg, #120b1a 0%, #0d0a14 55%, #07060c 100%);
+  background-image: url("/covers/mystic.webp");
 }
 .cover-vinyl {
-  background:
-    radial-gradient(70% 60% at 25% 20%, oklch(0.55 0.11 55 / 0.65), transparent 65%),
-    radial-gradient(50% 50% at 78% 78%, oklch(0.3 0.08 20 / 0.8), transparent 65%),
-    linear-gradient(150deg, #1b0e09 0%, #120a08 55%, #080506 100%);
+  background-image: url("/covers/vinyl.webp");
 }
 .cover-vale {
-  background:
-    radial-gradient(65% 55% at 68% 22%, oklch(0.7 0.13 20 / 0.6), transparent 65%),
-    radial-gradient(55% 55% at 20% 80%, oklch(0.4 0.1 340 / 0.65), transparent 65%),
-    linear-gradient(150deg, #1d0a11 0%, #15080d 55%, #090507 100%);
+  background-image: url("/covers/vale.webp");
 }
 .cover-art {
-  background:
-    radial-gradient(55% 55% at 30% 20%, oklch(0.55 0.11 250 / 0.65), transparent 65%),
-    radial-gradient(50% 50% at 80% 80%, oklch(0.55 0.12 320 / 0.55), transparent 65%),
-    linear-gradient(150deg, #0b0d1a 0%, #0d0a14 55%, #07060b 100%);
+  background-image: url("/covers/art.webp");
 }
 .cover-marea {
-  background:
-    radial-gradient(60% 55% at 25% 20%, oklch(0.6 0.08 190 / 0.55), transparent 65%),
-    radial-gradient(55% 55% at 82% 82%, oklch(0.6 0.07 80 / 0.45), transparent 65%),
-    linear-gradient(150deg, #0a1214 0%, #0b0f10 55%, #070808 100%);
+  background-image: url("/covers/marea.webp");
 }
 .cover-jade {
-  background:
-    radial-gradient(60% 55% at 72% 20%, oklch(0.6 0.12 160 / 0.55), transparent 65%),
-    radial-gradient(50% 50% at 20% 82%, oklch(0.4 0.09 190 / 0.6), transparent 65%),
-    linear-gradient(150deg, #08120f 0%, #0a100d 55%, #050807 100%);
+  background-image: url("/covers/jade.webp");
 }
 .cover-ai {
-  background:
-    radial-gradient(55% 50% at 28% 22%, oklch(0.6 0.14 290 / 0.65), transparent 62%),
-    radial-gradient(50% 50% at 80% 78%, oklch(0.65 0.1 200 / 0.5), transparent 62%),
-    linear-gradient(150deg, #100b1a 0%, #0c0a14 55%, #06050a 100%);
+  background-image: url("/covers/ai.webp");
 }
 .cover-obsidian {
-  background:
-    radial-gradient(60% 50% at 70% 25%, oklch(0.35 0.1 10 / 0.7), transparent 65%),
-    radial-gradient(55% 55% at 20% 80%, oklch(0.25 0.05 280 / 0.7), transparent 65%),
-    linear-gradient(150deg, #080708 0%, #12090d 55%, #050405 100%);
+  background-image: url("/covers/obsidian.webp");
 }
 .cover-cherry {
-  background:
-    radial-gradient(70% 60% at 30% 25%, oklch(0.45 0.15 18 / 0.8), transparent 65%),
-    radial-gradient(55% 55% at 82% 80%, oklch(0.3 0.09 350 / 0.7), transparent 65%),
-    linear-gradient(150deg, #1a070c 0%, #12060a 55%, #070406 100%);
+  background-image: url("/covers/cherry.webp");
 }
 .cover-amber {
-  background:
-    radial-gradient(65% 55% at 25% 22%, oklch(0.65 0.12 65 / 0.6), transparent 65%),
-    radial-gradient(55% 55% at 80% 80%, oklch(0.38 0.09 25 / 0.7), transparent 65%),
-    linear-gradient(150deg, #1b1108 0%, #130c08 55%, #080605 100%);
+  background-image: url("/covers/amber.webp");
 }
 .cover-rose {
-  background:
-    radial-gradient(65% 55% at 70% 20%, oklch(0.62 0.14 10 / 0.55), transparent 65%),
-    radial-gradient(55% 55% at 20% 82%, oklch(0.35 0.1 330 / 0.7), transparent 65%),
-    linear-gradient(150deg, #1a080f 0%, #12070c 55%, #070407 100%);
+  background-image: url("/covers/rose.webp");
 }
 
 @keyframes fade-up {

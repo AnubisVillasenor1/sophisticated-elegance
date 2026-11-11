@@ -441,7 +441,7 @@ export function Cover({
     <div
       className={cn(
         "relative overflow-hidden bg-card",
-        !photo && "cover-art",
+        !photo && "cover-base",
         !photo && `cover-${kind}`,
         className,
       )}

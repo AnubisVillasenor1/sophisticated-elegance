@@ -609,7 +609,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         id: "reparto",
         title: "5. Reparto para creadoras",
         paragraphs: [
-          "Cada creadora tiene un porcentaje de reparto visible en su panel de ingresos. El prototipo permite configurar 80% (estándar) y 85% (línea Unlockd) y muestra la comisión de plataforma correspondiente. En producción, el reparto definitivo debe constar en el contrato y reflejarse en el libro mayor de doble entrada.",
+          "Cada creadora tiene un porcentaje de reparto visible en su panel de ingresos. El prototipo permite configurar 80% (estándar) y 85% (línea fundadora) y muestra la comisión de plataforma correspondiente. En producción, el reparto definitivo debe constar en el contrato y reflejarse en el libro mayor de doble entrada.",
         ],
       },
       {

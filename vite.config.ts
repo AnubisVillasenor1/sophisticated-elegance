@@ -41,6 +41,9 @@ export default defineConfig({
       "/brand/**": {
         headers: { "Cache-Control": "public, max-age=31536000, immutable" },
       },
+      "/covers/**": {
+        headers: { "Cache-Control": "public, max-age=31536000, immutable" },
+      },
       "/health.json": { headers: { "Cache-Control": "no-store" } },
     },
   } as unknown as { preset?: string },

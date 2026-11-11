@@ -20,7 +20,7 @@ import { Badge, Button, DemoBadge, SectionHeading, btn } from "@/components/lux/
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { BrandLockup, BrandWatermark } from "@/components/site/brand";
 import { formatNumber } from "@/lib/format";
-import { ECOSYSTEM_PRINCIPLES, PLATFORMS } from "@/lib/platforms";
+import { CAPABILITIES, ECOSYSTEM_PRINCIPLES } from "@/lib/platforms";
 import { useApp } from "@/lib/store";
 import { liveNow, topCreators } from "@/lib/selectors";
 
@@ -72,7 +72,7 @@ function Landing() {
             </h1>
             <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               Un club privado donde cada creadora decide quién entra, qué se muestra y cuánto vale
-              su cercanía. Quince mecánicas de monetización, una sola bóveda y reglas claras.
+              su cercanía. Membresías, contenido a la carta, salones y bóveda bajo un mismo techo.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link to="/registro" className={btn("primary", "lg")}>
@@ -93,7 +93,7 @@ function Landing() {
                 <BadgeCheck className="h-3.5 w-3.5" /> {state.creators.length} creadoras
               </span>
               <span className="inline-flex items-center gap-2">
-                <Fingerprint className="h-3.5 w-3.5" /> 15 plataformas fusionadas
+                <Fingerprint className="h-3.5 w-3.5" /> Un solo libro de ingresos
               </span>
             </div>
           </div>
@@ -277,8 +277,14 @@ function Landing() {
       </section>
 
       {/* Membership levels */}
-      <section className="border-y border-hairline bg-gradient-to-b from-cherry/30 to-background">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
+      <section className="relative overflow-hidden border-y border-hairline bg-gradient-to-b from-cherry/30 to-background">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.22]"
+          style={{ backgroundImage: "url('/covers/boveda.webp')" }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background" />
+        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
           <SectionHeading
             align="center"
             eyebrow="IV — Membresías"
@@ -396,39 +402,26 @@ function Landing() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
         <SectionHeading
           eyebrow="V — El ecosistema"
-          title={<>Quince plataformas, una sola cuenta.</>}
-          description="Fansly, Fanvue, LoyalFans, ManyVids, Patreon, Fanfix, JustForFans, FanCentro, MYM.fans, Unlockd, Passes, Stripchat, Clips4Sale, Luvi y Scrile Connect. Lo mejor de cada una, integrado con reglas claras."
+          title={<>Todo lo que necesitas, en una sola cuenta.</>}
+          description="Membresías, contenido a la carta, salones en vivo, mensajes, encargos y bóveda. Cada pieza con reglas claras y comisiones visibles antes de confirmar."
           action={
             <Link to="/ecosistema" className={btn("secondary", "md")}>
-              Ver matriz de fusión <ArrowRight className="h-4 w-4" />
+              Ver el ecosistema <ArrowRight className="h-4 w-4" />
             </Link>
           }
         />
         <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PLATFORMS.slice(0, 9).map((platform) => (
+          {CAPABILITIES.slice(0, 9).map((capability) => (
             <div
-              key={platform.id}
+              key={capability.id}
               className="rounded-xl border border-hairline bg-white/[0.02] p-4 transition-colors hover:border-signal/25"
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="font-serif text-xl text-pearl">{platform.name}</p>
-                <Badge
-                  tone={
-                    platform.content === "No adulto"
-                      ? "success"
-                      : platform.content === "Mixto"
-                        ? "info"
-                        : "outline"
-                  }
-                >
-                  {platform.content}
-                </Badge>
+                <p className="font-serif text-xl text-pearl">{capability.name}</p>
+                <Badge tone="outline">{capability.category}</Badge>
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                {platform.bestFor}
-              </p>
-              <p className="mt-2 text-[0.6rem] uppercase tracking-[0.14em] text-silver/70">
-                Reparto {platform.share}
+                {capability.summary}
               </p>
             </div>
           ))}
@@ -525,6 +518,11 @@ function Landing() {
 
       {/* CTA */}
       <section className="relative overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.3]"
+          style={{ backgroundImage: "url('/covers/atrio.webp')" }}
+        />
         <div className="pointer-events-none absolute inset-0 bg-ember opacity-70" />
         <BrandWatermark className="-left-24 top-1/2 w-80 -translate-y-1/2 opacity-[0.06] sm:w-[26rem]" />
         <div className="relative mx-auto max-w-4xl px-4 py-24 text-center sm:px-6 lg:py-32">

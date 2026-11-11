@@ -1,252 +1,213 @@
-/* Matriz de fusión: las 15 plataformas de referencia y cómo viven dentro de XCLUSIVE. */
-export type PlatformRef = {
+/* Capacidades propias de Xclusive.
+ *
+ * Este archivo describe lo que la plataforma hace, no de dónde se copió:
+ * no menciona marcas de terceros ni conteos de plataformas.
+ */
+
+export type CapabilityCategory =
+  "Membresías" | "Contenido" | "Directo" | "Ingresos" | "Creadoras" | "Confianza";
+
+export type Capability = {
   id: string;
   name: string;
-  bestFor: string;
-  share: string;
-  content: "Adulto" | "No adulto" | "Mixto";
-  adopted: string[];
-  implementedIn: string[];
+  category: CapabilityCategory;
+  summary: string;
+  features: string[];
+  surfaces: string[];
 };
 
-export const PLATFORMS: PlatformRef[] = [
+export const CAPABILITY_CATEGORIES: CapabilityCategory[] = [
+  "Membresías",
+  "Contenido",
+  "Directo",
+  "Ingresos",
+  "Creadoras",
+  "Confianza",
+];
+
+export const CAPABILITIES: Capability[] = [
   {
-    id: "fansly",
-    name: "Fansly",
-    bestFor: "Suscripciones adultas + PPV",
-    share: "80%",
-    content: "Adulto",
-    adopted: [
-      "Tiers multinivel de $5 a $499.99 con precio libre por creadora",
-      "Pay-per-view en mensajes y publicaciones bloqueadas",
-      "Descubrimiento «For You» por etiquetas e intereses",
-      "Seguidores gratuitos y pruebas sin tarjeta",
+    id: "tiers",
+    name: "Membresías por niveles",
+    category: "Membresías",
+    summary:
+      "Cada creadora publica sus propios niveles, precios y beneficios. Sin plantillas impuestas.",
+    features: [
+      "Hasta tres niveles con precio libre por creadora",
+      "Prueba gratuita opcional con límite de días",
+      "Acceso a publicaciones y salones según el nivel",
+      "Cancelación en un paso, sin penalización",
     ],
-    implementedIn: ["Explorar", "Perfil de creadora", "Membresías", "Mensajes con PPV"],
+    surfaces: ["Perfil de creadora", "Membresías", "Mi cuenta"],
   },
   {
-    id: "fanvue",
-    name: "Fanvue",
-    bestFor: "Creadoras de IA + lifestyle",
-    share: "80% (85% primer mes)",
-    content: "Mixto",
-    adopted: [
-      "Cuentas asistidas por IA declaradas con transparencia",
-      "Bundles, suscripciones, PPV y contenido custom",
-      "Herramientas de IA para gestionar interacciones",
-      "Enfoque lifestyle y fitness además de contenido adulto",
+    id: "feed",
+    name: "Muro editorial",
+    category: "Contenido",
+    summary: "Publicaciones con texto, imagen y audio, con visibilidad definida pieza por pieza.",
+    features: [
+      "Visibilidad pública, para miembros o por nivel",
+      "Publicaciones bloqueadas que se desbloquean con pago",
+      "Programación de estrenos y avisos",
+      "Comentarios moderados por la creadora",
     ],
-    implementedIn: ["Nina Blake (perfil IA)", "Asistente de estudio", "Bundles", "Bandeja con IA"],
+    surfaces: ["Explorar", "Perfil de creadora", "Estudio"],
   },
   {
-    id: "loyalfans",
-    name: "LoyalFans",
-    bestFor: "Interacción + live",
-    share: "80%",
-    content: "Adulto",
-    adopted: [
-      "Suscripciones, propinas, PPV y transmisiones en vivo",
-      "Venta de videos individuales y llamadas privadas",
-      "Mensajería directa con prioridad",
-      "Reputación de buen trato a creadoras",
+    id: "ppv",
+    name: "Desbloqueo pieza por pieza",
+    category: "Ingresos",
+    summary: "El contenido premium se compra individualmente, sin obligar a una suscripción.",
+    features: [
+      "Precio por publicación, clip o galería",
+      "Compra única con acceso permanente en la bóveda",
+      "Confirmación de precio antes de pagar",
+      "Recibo y desglose de comisión visibles",
     ],
-    implementedIn: ["Salones en vivo", "Propinas", "Llamadas privadas", "Mensajería"],
+    surfaces: ["Perfil de creadora", "Mensajes", "Bóveda"],
   },
   {
-    id: "manyvids",
-    name: "ManyVids",
-    bestFor: "Clips + contenido custom",
-    share: "Variable",
-    content: "Adulto",
-    adopted: [
-      "Venta de clips individuales sin suscripción",
-      "Contenido custom bajo pedido",
-      "Catálogo por categorías y etiquetas",
-      "Comisión transparente por transacción",
+    id: "clips",
+    name: "Clips a la carta",
+    category: "Contenido",
+    summary: "Un catálogo de piezas cortas con duración, precio y etiquetas claras.",
+    features: [
+      "Búsqueda por categoría, duración y precio",
+      "Vista previa antes de comprar",
+      "Colecciones curadas por la creadora",
+      "Descarga protegida y marca de agua opcional",
     ],
-    implementedIn: ["Marketplace de clips", "Solicitudes custom", "Categorías", "Comisiones"],
+    surfaces: ["Clips", "Perfil de creadora", "Bóveda"],
   },
   {
-    id: "patreon",
-    name: "Patreon",
-    bestFor: "Contenido SFW",
-    share: "Variable",
-    content: "No adulto",
-    adopted: [
-      "Membresías por niveles con recompensas",
-      "Suscripción recurrente mensual",
-      "Comunidad integrada y herramientas de engagement",
-      "Política estricta de contenido no explícito",
+    id: "live",
+    name: "Salones en vivo",
+    category: "Directo",
+    summary: "Sesiones privadas o abiertas, con aforo, horario y acceso controlados.",
+    features: [
+      "Salas abiertas, para miembros o por boleto",
+      "Chat moderado y propinas durante la sesión",
+      "Recordatorio previo y repetición opcional",
+      "Aforo máximo definido por la creadora",
     ],
-    implementedIn: ["Tiers", "Comunidad", "Perfiles SFW", "Política de contenido"],
+    surfaces: ["Salones", "Perfil de creadora", "Estudio"],
   },
   {
-    id: "fanfix",
-    name: "Fanfix",
-    bestFor: "Lifestyle / SFW",
-    share: "80%",
-    content: "No adulto",
-    adopted: [
-      "Creadoras conservan 80% de pagos de fans",
-      "Enfoque en influencers lifestyle",
-      "Suscripciones y propinas",
-      "Integración con redes para captación",
+    id: "tips",
+    name: "Propinas y metas",
+    category: "Ingresos",
+    summary: "Apoyo directo con monto libre y metas de proyecto visibles para la comunidad.",
+    features: [
+      "Propina con monto libre y mensaje opcional",
+      "Metas con progreso público",
+      "Agradecimiento automático configurable",
+      "Historial de propinas en el panel de la creadora",
     ],
-    implementedIn: ["Perfiles lifestyle", "Enlaces inteligentes", "Propinas", "Afiliados"],
+    surfaces: ["Perfil de creadora", "Salones", "Estudio"],
   },
   {
-    id: "justforfans",
-    name: "JustForFans",
-    bestFor: "Audiencia LGBTQ+",
-    share: "Verificar",
-    content: "Adulto",
-    adopted: [
-      "Comunidades de nicho con identidad propia",
-      "Suscripción + venta de contenido",
-      "Mensajería y propinas",
-      "Comisión configurable y transparente",
+    id: "messages",
+    name: "Mensajes con contexto",
+    category: "Directo",
+    summary: "Conversaciones que respetan el nivel de acceso y el consentimiento de cada parte.",
+    features: [
+      "Bandeja con etiquetas de membresía",
+      "Envío de contenido bloqueado dentro del chat",
+      "Respuestas asistidas que la creadora aprueba",
+      "Bloqueo y reporte en un paso",
     ],
-    implementedIn: ["Etiquetas de nicho", "Perfil Jade K.", "Mensajería", "Comisiones"],
+    surfaces: ["Mensajes", "Perfil de creadora", "Estudio"],
   },
   {
-    id: "fancentro",
-    name: "FanCentro",
-    bestFor: "Social de pago + link-in-bio",
-    share: "Verificar",
-    content: "Adulto",
-    adopted: [
-      "Acceso privado desde un link-in-bio",
-      "Integración con Instagram/TikTok como embudo",
-      "Gestión de suscriptores",
-      "Enlaces medibles por campaña",
+    id: "custom",
+    name: "Encargos personalizados",
+    category: "Ingresos",
+    summary: "Solicitudes a medida con alcance, plazo y precio acordados antes de empezar.",
+    features: [
+      "Formulario de encargo con brief y referencias",
+      "Contraoferta y calendario de entrega",
+      "Pago retenido hasta la aceptación",
+      "Límites de contenido declarados por la creadora",
     ],
-    implementedIn: ["Enlace inteligente", "Afiliados", "Analítica de clics", "Cuenta"],
+    surfaces: ["Mensajes", "Perfil de creadora", "Estudio"],
   },
   {
-    id: "mymfans",
-    name: "MYM.fans",
-    bestFor: "Mercado europeo",
-    share: "75–80%",
-    content: "Adulto",
-    adopted: [
-      "Modelo híbrido de suscripción y media privada",
-      "Presencia europea y precios en EUR",
-      "Suscripciones + mensajes",
-      "Interfaz orientada a fans europeos",
+    id: "bundles",
+    name: "Paquetes y temporadas",
+    category: "Contenido",
+    summary: "Conjuntos de piezas con precio conjunto y vigencia definida.",
+    features: [
+      "Paquetes por tema o temporada",
+      "Precio conjunto con ahorro visible",
+      "Disponibilidad con fecha de cierre",
+      "Contenido del paquete listado antes de comprar",
     ],
-    implementedIn: [
-      "Selector MXN/USD/EUR",
-      "Perfil Maréa (Barcelona)",
-      "Media privada",
-      "Mensajes",
-    ],
+    surfaces: ["Clips", "Perfil de creadora", "Bóveda"],
   },
   {
-    id: "unlockd",
-    name: "Unlockd",
-    bestFor: "Mayor porcentaje para creadoras",
-    share: "85%",
-    content: "Adulto",
-    adopted: [
-      "85% de ingresos para la creadora",
-      "Suscripciones + interacciones de pago",
-      "Comisión más baja que la mayoría",
-      "Monetización de interacciones",
+    id: "vault",
+    name: "Bóveda personal",
+    category: "Contenido",
+    summary: "Todo lo comprado y lo guardado, ordenado y disponible sin volver a pagar.",
+    features: [
+      "Compras, favoritos y descargas en un solo lugar",
+      "Acceso permanente mientras la cuenta exista",
+      "Filtros por creadora, tipo y fecha",
+      "Solicitud de borrado de datos desde la misma vista",
     ],
-    implementedIn: ["Revenue share 85%", "Ingresos", "Propinas", "Transacciones"],
+    surfaces: ["Bóveda", "Mi cuenta"],
   },
   {
-    id: "passes",
-    name: "Passes",
-    bestFor: "Exclusividad premium",
-    share: "Variable",
-    content: "Mixto",
-    adopted: [
-      "Acceso premium y curaduría de creadoras",
-      "Suscripción + PPV",
-      "Herramientas de engagement",
-      "Integración con creadoras de alto perfil",
+    id: "studio",
+    name: "Estudio de creadora",
+    category: "Creadoras",
+    summary: "Panel para publicar, fijar precios y entender qué funciona, sin cajas negras.",
+    features: [
+      "Ingresos brutos, comisión y neto desglosados",
+      "Borradores y programación de publicaciones",
+      "Métricas de conversión por pieza",
+      "Mensajes y encargos pendientes en una bandeja",
     ],
-    implementedIn: ["XTRIME Inner Circle", "Curaduría", "PPV", "Salones privados"],
+    surfaces: ["Estudio", "Mi cuenta"],
   },
   {
-    id: "stripchat",
-    name: "Stripchat",
-    bestFor: "Live streaming",
-    share: "Tips / tokens",
-    content: "Adulto",
-    adopted: [
-      "Live gratuito para espectadores",
-      "Monetización por propinas y tokens",
-      "Interacción en tiempo real",
-      "Modelo free-to-watch",
+    id: "trust",
+    name: "Confianza y consentimiento",
+    category: "Confianza",
+    summary: "Reglas explícitas, aceptación registrada y derecho a retirar el consentimiento.",
+    features: [
+      "Aceptación documento por documento con fecha",
+      "Verificación de edad y de identidad para publicar",
+      "Reportes con revisión y respuesta",
+      "Derechos ARCO operables desde la cuenta",
     ],
-    implementedIn: ["Salones abiertos", "Propinas en vivo", "Chat", "Contador de audiencia"],
-  },
-  {
-    id: "clips4sale",
-    name: "Clips4Sale",
-    bestFor: "Venta de clips",
-    share: "Variable",
-    content: "Adulto",
-    adopted: [
-      "Venta por clip sin suscripción",
-      "Marketplace con categorías específicas",
-      "Comisiones variables por transacción",
-      "Ideal para catálogos de video",
-    ],
-    implementedIn: ["Marketplace", "Filtros por categoría", "Comisiones", "Biblioteca"],
-  },
-  {
-    id: "luvi",
-    name: "Luvi",
-    bestFor: "IA + automatización",
-    share: "Variable",
-    content: "Mixto",
-    adopted: [
-      "Herramientas de IA para interacciones",
-      "Automatización de respuestas",
-      "Sugerencias de precio y copy",
-      "Enfoque tech",
-    ],
-    implementedIn: [
-      "Asistente IA",
-      "Respuestas sugeridas",
-      "Precios sugeridos",
-      "Automatizaciones",
-    ],
-  },
-  {
-    id: "scrile",
-    name: "Scrile Connect",
-    bestFor: "White-label propio",
-    share: "100% (tu plataforma)",
-    content: "Mixto",
-    adopted: [
-      "Plataforma white-label con marca propia",
-      "Control de branding y reglas",
-      "Propiedad de la relación con el fan",
-      "Personalización completa",
-    ],
-    implementedIn: ["Panel White-label", "Marca y acento", "Dominio", "Comisión global"],
+    surfaces: ["Centro legal", "Mi cuenta", "Administración"],
   },
 ];
 
 export const ECOSYSTEM_PRINCIPLES = [
   {
-    title: "Una sola cuenta, quince mecánicas",
-    body: "Suscripciones, PPV, clips, propinas, live, custom, bundles, afiliados, IA y white-label conviven en un mismo libro de ingresos y una misma bóveda.",
+    title: "Una sola cuenta",
+    body: "Perfil, membresías, compras y mensajes viven en el mismo lugar. Sin saltar entre herramientas.",
   },
   {
-    title: "La creadora manda",
-    body: "Precio, tiers, audiencia, disponibilidad, reglas de acceso y porcentaje de reparto visibles. Sin ranking oculto ni letra pequeña.",
+    title: "La creadora fija las reglas",
+    body: "Precios, niveles, aforo y límites de contenido los decide ella, no el algoritmo.",
   },
   {
-    title: "Confianza verificable",
-    body: "Consentimiento, edad, moderación, reportes y aceptación legal con versión, fecha y hash. Todo auditable desde el panel.",
+    title: "Comisiones a la vista",
+    body: "Cada cobro muestra el desglose completo antes de confirmarse. Nada se descuenta en silencio.",
   },
   {
-    title: "Cumplimiento antes que cobro",
-    body: "Modo DEMO sin cargos reales. Contenido adulto deshabilitado hasta completar verificación especializada, revisión legal y aprobación del PSP.",
+    title: "Consentimiento trazable",
+    body: "Cada aceptación queda registrada con fecha y versión, y puede retirarse cuando la persona quiera.",
+  },
+  {
+    title: "Datos que se pueden borrar",
+    body: "Exportar o eliminar la cuenta es una acción disponible, no un trámite por correo.",
+  },
+  {
+    title: "Sin promesas de más",
+    body: "Lo que aún no está operativo se declara como tal. El producto no finge funciones que no existen.",
   },
 ];
