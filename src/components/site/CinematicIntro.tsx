@@ -1,5 +1,5 @@
 import { useRouterState } from "@tanstack/react-router";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useApp } from "@/lib/store";
@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { BrandLockup } from "./brand";
 
 const INTRO_KEY = "xclusive.intro.v1";
-const INTRO_MS = 10_000;
 
 /**
  * Intro cinematográfica de la portada.
@@ -20,7 +19,21 @@ export function CinematicIntro() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioError, setAudioError] = useState(false);
   const enterRef = useRef<HTMLButtonElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio("/audio/xclusive-intro.mp3");
+    audio.loop = true;
+    audio.preload = "none";
+    audioRef.current = audio;
+    return () => {
+      audio.pause();
+      audioRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!hydrated || !state.ageVerified || pathname !== "/") return;
@@ -46,21 +59,62 @@ export function CinematicIntro() {
     }, 760);
   }, []);
 
+  const enterWithAudio = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    try {
+      await audio.play();
+      setAudioEnabled(true);
+      setAudioError(false);
+      dismiss();
+    } catch {
+      setAudioError(true);
+    }
+  }, [dismiss]);
+
+  const toggleAudio = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audioEnabled) {
+      audio.pause();
+      setAudioEnabled(false);
+      return;
+    }
+    try {
+      await audio.play();
+      setAudioEnabled(true);
+      setAudioError(false);
+    } catch {
+      setAudioError(true);
+    }
+  }, [audioEnabled]);
+
   useEffect(() => {
     if (!visible) return;
     enterRef.current?.focus();
-    const timer = window.setTimeout(dismiss, INTRO_MS);
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") dismiss();
     };
     window.addEventListener("keydown", onKey);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [visible, dismiss]);
 
-  if (!visible) return null;
+  if (!visible) {
+    return (
+      <>
+        {audioEnabled && (
+          <button
+            type="button"
+            onClick={toggleAudio}
+            aria-label="Silenciar música de bienvenida"
+            className="fixed bottom-5 right-5 z-[1500] inline-flex h-11 w-11 items-center justify-center rounded-full border border-pearl/15 bg-background/85 text-pearl shadow-lg backdrop-blur transition hover:border-signal/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+          >
+            <Volume2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
+      </>
+    );
+  }
 
   return (
     <div
@@ -129,15 +183,36 @@ export function CinematicIntro() {
           Solo para quienes saben entrar.
         </p>
 
+        <p
+          className="intro-line mt-5 max-w-sm text-xs leading-relaxed text-muted-foreground"
+          style={{ animationDelay: "1080ms" }}
+        >
+          Activa el audio para acompañar tu primera entrada. Tú decides; puedes cambiarlo después.
+        </p>
+        {audioError && (
+          <p role="status" className="mt-2 text-xs text-signal">
+            No se pudo iniciar el audio. Puedes continuar sin sonido.
+          </p>
+        )}
         <button
           ref={enterRef}
           type="button"
-          onClick={dismiss}
-          className="intro-line group mt-9 inline-flex items-center gap-3 rounded-full border border-signal/45 bg-signal/10 px-8 py-3.5 text-[0.68rem] uppercase tracking-[0.22em] text-pearl shadow-ember transition-all hover:-translate-y-0.5 hover:bg-signal/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/70 sm:mt-11"
+          onClick={enterWithAudio}
+          className="intro-line group mt-5 inline-flex items-center gap-3 rounded-full border border-signal/45 bg-signal/10 px-8 py-3.5 text-[0.68rem] uppercase tracking-[0.22em] text-pearl shadow-ember transition-all hover:-translate-y-0.5 hover:bg-signal/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/70 sm:mt-6"
           style={{ animationDelay: "1180ms" }}
         >
-          Entrar al club
+          <Volume2 className="h-4 w-4" aria-hidden="true" />
+          Entrar con audio
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </button>
+        <button
+          type="button"
+          onClick={dismiss}
+          className="intro-line mt-4 rounded-full px-5 py-2 text-[0.62rem] uppercase tracking-[0.18em] text-silver transition-colors hover:text-pearl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/70"
+          style={{ animationDelay: "1280ms" }}
+        >
+          Continuar sin audio
+          <VolumeX className="ml-2 inline h-3.5 w-3.5" aria-hidden="true" />
         </button>
 
         <div
