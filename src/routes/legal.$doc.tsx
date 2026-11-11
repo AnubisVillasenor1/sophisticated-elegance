@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Badge, Button, DemoBadge, btn } from "@/components/lux/ui";
+import { BrandWatermark, BrandWordmark } from "@/components/site/brand";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { LEGAL_DOCS, legalDoc } from "@/lib/legal";
 import { useApp } from "@/lib/store";
@@ -106,9 +107,11 @@ function LegalDocPage() {
 
           {/* Document */}
           <article className="lg:col-span-9">
-            <div className="rounded-xl border border-hairline bg-card/30 p-6 sm:p-9">
-              <div className="flex items-start justify-between gap-4">
+            <div className="relative overflow-hidden rounded-xl border border-hairline bg-card/30 p-6 sm:p-9">
+              <BrandWatermark sizes="320px" className="-right-14 -top-14 w-52 opacity-[0.06]" />
+              <div className="relative flex items-start justify-between gap-4">
                 <div>
+                  <BrandWordmark sizes="160px" priority className="mb-4 h-[18px]" />
                   <p className="eyebrow">Xclusive by TAMV Online Network</p>
                   <h1 className="mt-3 font-serif text-4xl leading-tight text-pearl sm:text-5xl">
                     {doc.title}

@@ -18,7 +18,7 @@ import portrait from "@/assets/editorial_portrait.jpg";
 import { CreatorCard, LiveCard } from "@/components/lux/cards";
 import { Badge, Button, DemoBadge, SectionHeading, btn } from "@/components/lux/ui";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { XclusiveEmblem } from "@/components/site/XclusiveEmblem";
+import { BrandLockup, BrandWatermark } from "@/components/site/brand";
 import { formatNumber } from "@/lib/format";
 import { ECOSYSTEM_PRINCIPLES, PLATFORMS } from "@/lib/platforms";
 import { useApp } from "@/lib/store";
@@ -99,13 +99,15 @@ function Landing() {
           </div>
 
           <div className="relative lg:col-span-5">
-            <div className="relative mx-auto w-[min(92vw,520px)]">
+            <div className="relative mx-auto w-[min(90vw,460px)]">
               <div className="absolute inset-[-16%] rounded-full bg-ember blur-2xl" />
-              <div className="emblem-orbit absolute inset-[1%] rounded-full border border-dashed border-signal/15" />
-              <div className="absolute inset-[9%] rounded-full border border-pearl/10" />
-              <div className="absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(244,63,94,0.20),transparent_68%)] blur-2xl" />
-              <XclusiveEmblem className="relative w-full animate-float-slow drop-shadow-[0_0_70px_rgba(244,63,94,0.28)]" />
-              <span className="pointer-events-none absolute left-1/2 top-[3%] -translate-x-1/2 text-[0.5rem] uppercase tracking-[0.5em] text-silver/50">
+              <div className="absolute left-1/2 top-1/2 h-[76%] w-[76%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(244,63,94,0.22),transparent_68%)] blur-2xl" />
+              <BrandLockup
+                priority
+                sizes="(max-width: 1024px) 90vw, 460px"
+                className="relative w-full animate-float-slow drop-shadow-[0_0_70px_rgba(244,63,94,0.28)]"
+              />
+              <span className="pointer-events-none absolute inset-x-0 -top-1 text-center text-[0.5rem] uppercase tracking-[0.5em] text-silver/50">
                 MMXXVI
               </span>
             </div>
@@ -524,6 +526,7 @@ function Landing() {
       {/* CTA */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 bg-ember opacity-70" />
+        <BrandWatermark className="-left-24 top-1/2 w-80 -translate-y-1/2 opacity-[0.06] sm:w-[26rem]" />
         <div className="relative mx-auto max-w-4xl px-4 py-24 text-center sm:px-6 lg:py-32">
           <p className="eyebrow">VII — La puerta</p>
           <h2 className="mt-5 font-serif text-4xl leading-[1] text-pearl sm:text-6xl">

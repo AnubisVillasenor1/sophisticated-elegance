@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { XclusiveEmblem } from "./XclusiveEmblem";
+import { BrandLockup } from "./brand";
 
 const INTRO_KEY = "xclusive.intro.v1";
 const INTRO_MS = 10_000;
@@ -102,22 +102,18 @@ export function CinematicIntro() {
           TAMV Online Network presenta
         </p>
 
-        <div className="intro-emblem relative mt-7 sm:mt-9">
-          <div className="absolute inset-[-14%] rounded-full bg-signal/25 blur-3xl" />
-          <div className="absolute inset-[4%] rounded-full border border-signal/15" />
-          <XclusiveEmblem animated className="relative w-[min(62vw,360px)]" />
+        <div className="intro-emblem relative mt-6 sm:mt-8">
+          <div className="absolute inset-[-12%] rounded-full bg-signal/25 blur-3xl" />
+          <BrandLockup
+            priority
+            sizes="(max-width: 640px) 80vw, 420px"
+            className="relative mx-auto w-[min(80vw,420px)]"
+          />
         </div>
 
-        <h1
-          className="intro-line mt-6 font-serif text-[clamp(2.6rem,9vw,6.5rem)] leading-none tracking-[0.18em] text-silver-sheen sm:mt-8"
-          style={{ animationDelay: "620ms" }}
-        >
-          XCLUSIVE
-        </h1>
-
         <div
-          className="intro-line mt-5 flex items-center gap-4"
-          style={{ animationDelay: "820ms" }}
+          className="intro-line mt-7 flex items-center gap-4"
+          style={{ animationDelay: "620ms" }}
         >
           <span className="h-px w-12 bg-gradient-to-r from-transparent to-signal/70 sm:w-20" />
           <span className="whitespace-nowrap text-[0.55rem] uppercase tracking-[0.34em] text-signal sm:text-[0.62rem]">
@@ -130,8 +126,6 @@ export function CinematicIntro() {
           className="intro-line mt-6 max-w-xl font-serif text-xl italic leading-snug text-silver sm:text-2xl"
           style={{ animationDelay: "980ms" }}
         >
-          Un paraíso prohibido.
-          <br />
           Solo para quienes saben entrar.
         </p>
 

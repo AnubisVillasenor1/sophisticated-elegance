@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Badge, Button, Field, Input } from "@/components/lux/ui";
+import { BrandLockup } from "@/components/site/brand";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { DEMO_ACCOUNTS, useApp } from "@/lib/store";
 
@@ -46,6 +47,7 @@ function LoginPage() {
     <SiteLayout>
       <section className="relative mx-auto grid min-h-[calc(100svh-4rem)] max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:px-10">
         <div className="lg:col-span-6">
+          <BrandLockup priority sizes="180px" className="mb-9 w-36 sm:w-40" />
           <p className="eyebrow">Acceso al club</p>
           <h1 className="mt-4 font-serif text-5xl leading-[0.96] text-pearl sm:text-6xl">
             La llave ya está

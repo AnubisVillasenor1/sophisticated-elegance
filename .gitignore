@@ -33,4 +33,7 @@ dist-ssr
 
 # Vercel
 .vercel
-.vercel
+
+# Secretos locales (nunca al repositorio)
+.env.pull
+.env*.local

@@ -4,7 +4,7 @@ import { ArrowUpRight, Mail, ShieldCheck } from "lucide-react";
 import { LEGAL_STATUS } from "@/lib/legal";
 import { useApp } from "@/lib/store";
 import { Badge, DemoBadge } from "@/components/lux/ui";
-import { Logo } from "./brand";
+import { BrandLockup, BrandWatermark } from "./brand";
 
 const columns = [
   {
@@ -44,10 +44,11 @@ export function SiteFooter() {
   return (
     <footer className="relative overflow-hidden border-t border-hairline bg-black/20">
       <div className="pointer-events-none absolute -right-32 top-0 h-72 w-72 rounded-full bg-ember opacity-40" />
+      <BrandWatermark className="-right-16 -top-12 w-72 opacity-[0.07] sm:w-96" />
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-10 lg:py-18">
         <div className="grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <Logo showEmblem={false} />
+            <BrandLockup sizes="200px" className="w-40 sm:w-44" />
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
               {state.settings.tagline}. Club privado editorial para creadoras independientes y sus
               comunidades más cercanas.

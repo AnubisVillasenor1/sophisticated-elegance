@@ -1,78 +1,150 @@
 import { Link } from "@tanstack/react-router";
-import { useId } from "react";
 
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-function BrandMarkSvg({ className }: { className?: string }) {
-  const rawId = useId();
-  const id = `brand-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+/**
+ * Marca oficial de Xclusive.
+ *
+ * Los recortes se generan a partir del arte original (emblema + logotipo).
+ * El fondo negro del arte se descarta con `mix-blend-mode: screen`, así el
+ * logotipo se integra en cualquier superficie oscura sin halos ni cajas.
+ */
+const EMBLEM_SRC = "/brand/emblem-512.webp";
+const EMBLEM_SRCSET =
+  "/brand/emblem-96.webp 96w, /brand/emblem-256.webp 256w, /brand/emblem-512.webp 512w";
+const WORDMARK_SRC = "/brand/wordmark-900.webp";
+const WORDMARK_SRCSET = "/brand/wordmark-480.webp 480w, /brand/wordmark-900.webp 900w";
+const LOCKUP_SRC = "/brand/lockup-600.webp";
+const LOCKUP_SRCSET =
+  "/brand/lockup-320.webp 320w, /brand/lockup-600.webp 600w, /brand/lockup-1000.webp 1000w";
+
+type ArtProps = {
+  className?: string;
+  sizes?: string;
+  priority?: boolean;
+  alt?: string;
+};
+
+export function BrandEmblem({ className, sizes = "48px", priority = false, alt = "" }: ArtProps) {
   return (
-    <svg viewBox="0 0 48 48" aria-hidden className={cn("h-8 w-auto", className)}>
-      <defs>
-        <linearGradient id={`${id}-obsidian`} x1="30%" y1="0%" x2="70%" y2="100%">
-          <stop offset="0%" stopColor="#35141d" />
-          <stop offset="100%" stopColor="#080405" />
-        </linearGradient>
-        <linearGradient id={`${id}-cherry`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ff9aac" />
-          <stop offset="55%" stopColor="#f43f5e" />
-          <stop offset="100%" stopColor="#8f0d28" />
-        </linearGradient>
-        <linearGradient id={`${id}-pearl`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fffaf7" />
-          <stop offset="100%" stopColor="#c9b6ae" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M24 3C31 12 39 20 39 29a15 15 0 1 1-30 0C9 20 17 12 24 3Z"
-        fill={`url(#${id}-obsidian)`}
-        stroke={`url(#${id}-cherry)`}
-        strokeWidth="1.4"
-      />
-      <path
-        d="M17 20.5 31 33M31 20.5 17 33"
-        fill="none"
-        stroke={`url(#${id}-pearl)`}
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-      <circle cx="24" cy="29" r="2" fill="#ffb3c1" opacity="0.9" />
-    </svg>
+    <img
+      src={EMBLEM_SRC}
+      srcSet={EMBLEM_SRCSET}
+      sizes={sizes}
+      alt={alt}
+      width={512}
+      height={512}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : undefined}
+      draggable={false}
+      className={cn("brand-art select-none", className)}
+    />
+  );
+}
+
+export function BrandWordmark({
+  className,
+  sizes = "160px",
+  priority = false,
+  alt = "Xclusive",
+}: ArtProps) {
+  return (
+    <img
+      src={WORDMARK_SRC}
+      srcSet={WORDMARK_SRCSET}
+      sizes={sizes}
+      alt={alt}
+      width={900}
+      height={211}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : undefined}
+      draggable={false}
+      className={cn("brand-art w-auto select-none", className)}
+    />
+  );
+}
+
+/** Logotipo completo (emblema + palabra + lema). Para portada, acceso y cierre. */
+export function BrandLockup({
+  className,
+  sizes = "(max-width: 640px) 70vw, 420px",
+  priority = false,
+  alt = "Xclusive — Un paraíso prohibido",
+}: ArtProps) {
+  return (
+    <img
+      src={LOCKUP_SRC}
+      srcSet={LOCKUP_SRCSET}
+      sizes={sizes}
+      alt={alt}
+      width={1000}
+      height={957}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : undefined}
+      draggable={false}
+      className={cn("brand-art h-auto max-w-full select-none", className)}
+    />
+  );
+}
+
+/** Emblema de fondo, decorativo. No debe recibir foco ni leerse como contenido. */
+export function BrandWatermark({
+  className,
+  sizes = "520px",
+}: {
+  className?: string;
+  sizes?: string;
+}) {
+  return (
+    <BrandEmblem
+      aria-hidden
+      sizes={sizes}
+      className={cn("pointer-events-none absolute select-none", className)}
+    />
   );
 }
 
 export function Logo({
   className,
   showEmblem = true,
+  showByline = true,
 }: {
   className?: string;
   showEmblem?: boolean;
+  showByline?: boolean;
 }) {
   const { state } = useApp();
   const brand = state.settings.brandName || "Xclusive";
   return (
     <Link
       to="/"
-      className={cn("group flex items-center gap-2.5", className)}
+      className={cn("group inline-flex items-center gap-2.5", className)}
       aria-label={`${brand}, inicio`}
     >
-      {showEmblem ? <BrandMarkSvg className="transition-opacity group-hover:opacity-90" /> : null}
-      <span className="flex flex-col leading-none">
-        <span className="font-serif text-2xl tracking-tight text-silver-sheen">{brand}</span>
-        <span className="mt-0.5 text-[0.48rem] uppercase tracking-[0.34em] text-muted-foreground">
-          by TAMV
-        </span>
+      {showEmblem ? (
+        <BrandEmblem
+          priority
+          sizes="44px"
+          className="h-9 w-9 shrink-0 drop-shadow-[0_0_16px_rgba(244,63,94,0.35)] transition-transform duration-500 group-hover:scale-105 sm:h-11 sm:w-11"
+        />
+      ) : null}
+      <span className="flex flex-col justify-center leading-none">
+        <BrandWordmark
+          priority
+          alt={brand}
+          sizes="130px"
+          className="h-[20px] transition-opacity duration-500 group-hover:opacity-90 sm:h-[26px]"
+        />
+        {showByline ? (
+          <span className="mt-1.5 hidden text-[0.44rem] uppercase tracking-[0.32em] text-muted-foreground sm:block">
+            by TAMV
+          </span>
+        ) : null}
       </span>
     </Link>
-  );
-}
-
-export function BrandMark({ className }: { className?: string }) {
-  return (
-    <span className={cn("inline-flex items-center gap-2 font-serif text-lg text-pearl", className)}>
-      <BrandMarkSvg className="h-7" />
-      Xclusive
-    </span>
   );
 }

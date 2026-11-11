@@ -146,6 +146,12 @@
   box-shadow: var(--shadow-ember);
 }
 
+@utility brand-art {
+  /* El arte oficial trae fondo negro: "screen" lo vuelve invisible sobre superficies oscuras. */
+  mix-blend-mode: screen;
+  -webkit-user-drag: none;
+}
+
 @utility eyebrow {
   font-family: var(--font-sans);
   font-size: 0.68rem;
@@ -578,24 +584,6 @@
     transform: scaleX(1);
   }
 }
-@keyframes emblem-orbit {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes emblem-draw {
-  0% {
-    stroke-dashoffset: 420;
-    opacity: 0;
-  }
-  24% {
-    opacity: 1;
-  }
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-}
 
 .intro-shell {
   animation: intro-shell-in 0.6s ease-out both;
@@ -629,22 +617,6 @@
 .intro-progress {
   animation: intro-progress 10s linear both;
 }
-.emblem-orbit {
-  animation: emblem-orbit 44s linear infinite;
-}
-.emblem-orbit-reverse {
-  animation: emblem-orbit 72s linear infinite reverse;
-}
-.emblem-draw {
-  stroke-dasharray: 420;
-  stroke-dashoffset: 0;
-}
-[data-intro="true"] .emblem-draw {
-  animation: emblem-draw 1.7s 0.4s cubic-bezier(0.3, 0.8, 0.2, 1) both;
-}
-[data-intro="true"] .emblem-draw-late {
-  animation-delay: 0.72s;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .reveal {
@@ -661,10 +633,7 @@
   .intro-sweep,
   .intro-emblem,
   .intro-line,
-  .intro-progress,
-  .emblem-orbit,
-  .emblem-orbit-reverse,
-  .emblem-draw {
+  .intro-progress {
     animation: none;
   }
   .intro-line,

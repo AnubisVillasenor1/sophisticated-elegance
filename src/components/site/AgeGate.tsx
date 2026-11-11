@@ -4,7 +4,7 @@ import { Check, DoorClosed, ShieldCheck, Sparkles } from "lucide-react";
 import salon from "@/assets/private_salon.jpg";
 import { useApp } from "@/lib/store";
 import { Button, DemoBadge } from "@/components/lux/ui";
-import { Logo } from "./brand";
+import { Logo, BrandWatermark } from "./brand";
 
 export function AgeGate() {
   const { state, hydrated, setAgeVerified } = useApp();
@@ -20,6 +20,10 @@ export function AgeGate() {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/50" />
       <div className="absolute inset-0 grain opacity-60" />
+      <BrandWatermark
+        sizes="560px"
+        className="-bottom-32 -right-28 w-[34rem] max-w-[80vw] opacity-[0.10]"
+      />
 
       <div className="relative z-10 w-full max-w-xl rounded-2xl border border-hairline bg-background/85 p-6 shadow-deep backdrop-blur-xl sm:p-9">
         <div className="flex items-center justify-between gap-4">

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Badge, Button, Field, Input, Select, Textarea } from "@/components/lux/ui";
+import { BrandLockup } from "@/components/site/brand";
 import { LegalConsent, type LegalConsentValue } from "@/components/site/LegalConsent";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { useApp } from "@/lib/store";
@@ -96,6 +97,7 @@ function RegisterPage() {
     <SiteLayout>
       <section className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:px-10 lg:py-20">
         <div className="lg:col-span-5">
+          <BrandLockup priority sizes="180px" className="mb-9 w-36 sm:w-40" />
           <p className="eyebrow">Solicitud de acceso</p>
           <h1 className="mt-4 font-serif text-5xl leading-[0.96] text-pearl sm:text-6xl">
             Una cuenta.

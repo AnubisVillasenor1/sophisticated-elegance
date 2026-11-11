@@ -6,7 +6,7 @@ import { formatNumber } from "@/lib/format";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Avatar, Badge, btn } from "@/components/lux/ui";
-import { Logo } from "./brand";
+import { Logo, BrandWatermark } from "./brand";
 
 const NAV = [
   { to: "/explorar", label: "Explorar" },
@@ -159,7 +159,8 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <div className="border-t border-hairline bg-background/95 px-4 pb-6 pt-3 backdrop-blur-xl lg:hidden">
+        <div className="relative overflow-hidden border-t border-hairline bg-background/95 px-4 pb-6 pt-3 backdrop-blur-xl lg:hidden">
+          <BrandWatermark className="-right-12 -top-10 w-52 opacity-[0.08]" sizes="208px" />
           <div className="grid gap-1">
             {nav.map((item) => (
               <Link

@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { AgeGate } from "../components/site/AgeGate";
+import { BrandLockup } from "../components/site/brand";
 import { CinematicIntro } from "../components/site/CinematicIntro";
 import { CookieConsent } from "../components/site/CookieConsent";
 import { Toaster } from "../components/ui/sonner";
@@ -22,6 +23,7 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-lg text-center">
+        <BrandLockup sizes="160px" className="mx-auto mb-9 w-32 sm:w-36" />
         <p className="eyebrow">Error 404</p>
         <h1 className="mt-4 font-serif text-6xl leading-none text-silver-sheen">
           Esta puerta no existe.
@@ -59,6 +61,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-lg text-center">
+        <BrandLockup sizes="160px" className="mx-auto mb-9 w-32 sm:w-36" />
         <p className="eyebrow">Algo interrumpió la función</p>
         <h1 className="mt-4 font-serif text-5xl leading-none text-pearl">La página no cargó.</h1>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
@@ -126,7 +129,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { property: "og:image:height", content: "630" },
         {
           property: "og:image:alt",
-          content: "Emblema de Xclusive: gota de obsidiana con monograma X",
+          content:
+            "Logotipo oficial de Xclusive: emblema de obsidiana con cerezo rojo, palabra Xclusive y el lema Un paraíso prohibido",
         },
         { name: "twitter:card", content: "summary_large_image" },
         {
@@ -138,7 +142,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "stylesheet", href: appCss },
         { rel: "canonical", href: canonical },
         { rel: "icon", href: "/favicon.png", type: "image/png" },
-        { rel: "apple-touch-icon", href: "/icon-192.png" },
+        { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
         { rel: "manifest", href: "/manifest.webmanifest" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },

@@ -21,7 +21,7 @@ import { formatNumber } from "@/lib/format";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Avatar, Badge, Button, DemoBadge } from "@/components/lux/ui";
-import { Logo } from "@/components/site/brand";
+import { Logo, BrandWatermark } from "@/components/site/brand";
 
 type NavItem = { to: string; label: string; icon: ReactNode; badge?: number };
 
@@ -79,9 +79,10 @@ export function PlatformShell({
   nav.push({ to: "/legal/demo", label: "Estado DEMO", icon: <Sparkles className="h-4 w-4" /> });
 
   const sidebar = (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between px-5 py-5">
-        <Logo showEmblem={false} />
+    <div className="relative flex h-full flex-col overflow-hidden">
+      <BrandWatermark sizes="260px" className="-bottom-20 -left-12 w-60 opacity-[0.06]" />
+      <div className="relative flex items-center justify-between px-5 py-5">
+        <Logo />
         <button
           type="button"
           className="lg:hidden text-muted-foreground"
