@@ -922,8 +922,9 @@ function AjustesAdminTab() {
           className="mt-4"
           size="sm"
           onClick={() => {
-            updateSettings(form);
-            toast.success("Configuración actualizada en el prototipo.");
+            const result = updateSettings(form);
+            if (result.ok) toast.success(result.message);
+            else toast.error(result.message);
           }}
         >
           <Check className="h-3.5 w-3.5" /> Guardar configuración

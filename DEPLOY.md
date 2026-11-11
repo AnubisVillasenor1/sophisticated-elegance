@@ -28,6 +28,25 @@ npx vitest run
 
 Salida esperada del build: `.output/` con el worker de Cloudflare y los assets estáticos.
 
+Comprobaciones automáticas (también corren en GitHub Actions, `.github/workflows/ci.yml`):
+
+```sh
+npx tsc --noEmit
+npm test
+npm run lint
+npm run build
+```
+
+Archivos de producción incluidos en `public/`:
+
+- `_headers`: CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y caché de assets.
+- `robots.txt` y `sitemap.xml`: indexación pública; `/admin`, `/estudio`, `/boveda`, `/mensajes` y `/cuenta` quedan fuera.
+- `manifest.webmanifest`, `icon-192.png`, `icon-512.png`: instalación como aplicación.
+- `og.png`: tarjeta social 1200×630 usada por Open Graph y Twitter.
+- `health.json`: estado del servicio y declaración de Modo DEMO.
+
+Los iconos y la tarjeta social se regeneran con `powershell -File scripts/generate-brand-assets.ps1`.
+
 ## 2. Cuentas de demostración
 
 | Rol            | Correo                    | Contraseña |
@@ -103,6 +122,9 @@ Mantén la rama en estado compilable: cada push puede sincronizarse con Lovable.
 - [ ] Los importes muestran el sello DEMO y no se solicita tarjeta.
 - [ ] El contenido adulto permanece deshabilitado.
 - [ ] `/auth` redirige a `/entrar` y `/membresias` redirige a `/explorar`.
+- [ ] `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`, `/og.png` y `/health.json` responden 200.
+- [ ] Las cabeceras de seguridad de `_headers` llegan en la respuesta del dominio (`Strict-Transport-Security`, `X-Content-Type-Options`).
+- [ ] La intro cinematográfica aparece una vez por sesión, se puede saltar con Escape y no se muestra con `prefers-reduced-motion`.
 
 ## 6. Reversión
 

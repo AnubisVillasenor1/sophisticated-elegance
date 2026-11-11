@@ -15,7 +15,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { ClipCard, PostCard, TierCard } from "@/components/lux/cards";
@@ -44,6 +44,10 @@ import type { Creator } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/creadora/$slug")({
+  validateSearch: (search: Record<string, unknown>): { ref?: string } => {
+    const value = search["ref"];
+    return typeof value === "string" && value.trim() ? { ref: value.trim() } : {};
+  },
   head: ({ params }) => ({
     meta: [
       { title: `${params.slug.replace(/-/g, " ")} — Xclusive` },
@@ -60,10 +64,22 @@ type Tab = "feed" | "planes" | "clips" | "salones" | "encargos";
 
 function CreatorProfilePage() {
   const { slug } = Route.useParams();
-  const { state, user, startThread } = useApp();
+  const { ref } = Route.useSearch();
+  const { state, user, startThread, registerReferralClick } = useApp();
   const navigate = useNavigate();
   const creator = getCreatorBySlug(state, slug);
   const [tab, setTab] = useState<Tab>("feed");
+
+  useEffect(() => {
+    if (!ref) return;
+    registerReferralClick(ref);
+    try {
+      window.sessionStorage.setItem("xclusive.refcode", ref.toUpperCase());
+    } catch {
+      // sessionStorage bloqueado: el clic queda solo en memoria.
+    }
+  }, [ref, registerReferralClick]);
+
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [tipOpen, setTipOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState<{

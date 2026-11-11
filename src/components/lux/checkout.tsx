@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, Check, Info, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
+import { creatorNetMXN, platformFeeMXN, pspEstimateMXN, validateTipAmount } from "@/lib/commerce";
 import { formatMoney } from "@/lib/format";
 import { useApp } from "@/lib/store";
 import type { Creator, PurchaseKind, ReportTarget, Tier } from "@/lib/types";
@@ -23,11 +24,11 @@ export function CommissionBreakdown({
   className?: string;
 }) {
   const { state } = useApp();
-  const platformPct = 100 - revenueShare;
-  const pspPct = 3.5;
-  const platformFee = Math.round((amountMXN * platformPct) / 100);
-  const pspFee = Math.round((amountMXN * pspPct) / 100);
-  const net = Math.max(0, amountMXN - platformFee - pspFee);
+  const gross = Math.max(0, Math.round(amountMXN));
+  const platformPct = 100 - Math.max(0, Math.min(100, revenueShare));
+  const platformFee = platformFeeMXN(gross, revenueShare);
+  const pspFee = pspEstimateMXN(gross);
+  const net = Math.max(0, creatorNetMXN(gross, revenueShare) - pspFee);
 
   return (
     <div className={cn("rounded-xl border border-hairline bg-black/25 p-4", className)}>
@@ -35,13 +36,13 @@ export function CommissionBreakdown({
         Desglose antes de confirmar
       </p>
       <div className="mt-3 space-y-2 text-xs">
-        <Row label="Precio bruto" value={formatMoney(amountMXN, state.currency)} />
+        <Row label="Precio bruto" value={formatMoney(gross, state.currency)} />
         <Row
           label={`Comisión Xclusive (${platformPct}%)`}
           value={`− ${formatMoney(platformFee, state.currency)}`}
         />
         <Row
-          label={`Comisión PSP estimada (${pspPct}%)`}
+          label={`Comisión PSP estimada (3.5% + IVA)`}
           value={`− ${formatMoney(pspFee, state.currency)}`}
         />
         <Row label="Impuestos aplicables" value="Variable" muted />
@@ -362,19 +363,30 @@ function TierOption({
 export function TipDialog({
   creator,
   roomId,
+  initialAmount,
   open,
   onClose,
 }: {
   creator: Creator;
   roomId?: string;
+  initialAmount?: number;
   open: boolean;
   onClose: () => void;
 }) {
   const { tip, liveTip } = useApp();
-  const [amount, setAmount] = useState(100);
+  const [amount, setAmount] = useState(initialAmount && initialAmount > 0 ? initialAmount : 100);
   const [note, setNote] = useState("");
 
+  useEffect(() => {
+    if (open && initialAmount && initialAmount > 0) setAmount(initialAmount);
+  }, [open, initialAmount]);
+
   const send = () => {
+    const invalid = validateTipAmount(amount);
+    if (invalid) {
+      toast.error(invalid);
+      return;
+    }
     const result = roomId ? liveTip(creator.id, roomId, amount) : tip(creator.id, amount, note);
     toast(result.message);
     if (result.ok) {

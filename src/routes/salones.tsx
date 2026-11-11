@@ -26,13 +26,16 @@ export const Route = createFileRoute("/salones")({
 function SalonesPage() {
   const { state } = useApp();
   const [tab, setTab] = useState<"live" | "scheduled" | "ended">("live");
+  const liveEnabled = state.settings.liveEnabled;
 
   const lives = useMemo(
     () =>
-      state.creators.flatMap((c) =>
-        c.rooms.filter((r) => r.status === "live").map((room) => ({ creator: c, room })),
-      ),
-    [state.creators],
+      liveEnabled
+        ? state.creators.flatMap((c) =>
+            c.rooms.filter((r) => r.status === "live").map((room) => ({ creator: c, room })),
+          )
+        : [],
+    [state.creators, liveEnabled],
   );
   const scheduled = useMemo(() => upcomingLive(state), [state]);
   const ended = useMemo(
@@ -79,6 +82,13 @@ function SalonesPage() {
       />
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+        {!liveEnabled ? (
+          <div className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-4 text-xs leading-relaxed text-muted-foreground">
+            <span className="font-medium text-warning">Transmisión en vivo pausada.</span> La
+            administración desactivó los salones en vivo. Puedes consultar los programados y el
+            archivo; las salas no transmiten hasta que se reactive la función.
+          </div>
+        ) : null}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-1 rounded-full border border-hairline bg-black/20 p-1">
             {(

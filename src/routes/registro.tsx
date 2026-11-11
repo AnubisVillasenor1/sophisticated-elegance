@@ -39,6 +39,14 @@ const CATEGORIES = [
 function RegisterPage() {
   const { signup } = useApp();
   const navigate = useNavigate();
+  const [referralCode] = useState(() => {
+    try {
+      if (typeof window === "undefined") return "";
+      return window.sessionStorage.getItem("xclusive.refcode") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [role, setRole] = useState<"fan" | "creator">("fan");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -72,6 +80,7 @@ function RegisterPage() {
       socials,
       bio,
       acceptedDocIds: legal.docIds,
+      ...(referralCode ? { referralCode } : {}),
     });
     if (!result.ok) {
       setError(result.message);

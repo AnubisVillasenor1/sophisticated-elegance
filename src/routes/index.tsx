@@ -14,11 +14,11 @@ import {
   Users,
 } from "lucide-react";
 
-import emblem from "@/assets/xclusive_emblem.png.asset.json";
 import portrait from "@/assets/editorial_portrait.jpg";
 import { CreatorCard, LiveCard } from "@/components/lux/cards";
 import { Badge, Button, DemoBadge, SectionHeading, btn } from "@/components/lux/ui";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { XclusiveEmblem } from "@/components/site/XclusiveEmblem";
 import { formatNumber } from "@/lib/format";
 import { ECOSYSTEM_PRINCIPLES, PLATFORMS } from "@/lib/platforms";
 import { useApp } from "@/lib/store";
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const { state, user } = useApp();
   const creators = topCreators(state, 6);
-  const lives = liveNow(state).slice(0, 3);
+  const lives = state.settings.liveEnabled ? liveNow(state).slice(0, 3) : [];
   const totalMembers = state.creators.reduce((sum, c) => sum + c.members, 0);
 
   return (
@@ -99,23 +99,20 @@ function Landing() {
           </div>
 
           <div className="relative lg:col-span-5">
-            <div className="relative mx-auto w-[min(88vw,460px)]">
-              <div className="absolute inset-[-18%] rounded-full bg-ember blur-2xl" />
-              <img
-                src={emblem.url}
-                alt="Emblema de Xclusive: gota de obsidiana y cristal rojo con un árbol escarlata"
-                width={1024}
-                height={622}
-                className="relative w-full mix-blend-screen animate-float-slow"
-                style={{
-                  maskImage:
-                    "linear-gradient(to bottom, black 72%, transparent 80%), radial-gradient(ellipse 44% 62% at 50% 40%, black 60%, transparent 100%)",
-                  maskComposite: "intersect",
-                  WebkitMaskComposite: "source-in",
-                }}
-              />
+            <div className="relative mx-auto w-[min(92vw,520px)]">
+              <div className="absolute inset-[-16%] rounded-full bg-ember blur-2xl" />
+              <div className="emblem-orbit absolute inset-[1%] rounded-full border border-dashed border-signal/15" />
+              <div className="absolute inset-[9%] rounded-full border border-pearl/10" />
+              <div className="absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(244,63,94,0.20),transparent_68%)] blur-2xl" />
+              <XclusiveEmblem className="relative w-full animate-float-slow drop-shadow-[0_0_70px_rgba(244,63,94,0.28)]" />
+              <span className="pointer-events-none absolute left-1/2 top-[3%] -translate-x-1/2 text-[0.5rem] uppercase tracking-[0.5em] text-silver/50">
+                MMXXVI
+              </span>
             </div>
-            <div className="mx-auto mt-2 grid max-w-sm grid-cols-2 gap-2">
+            <p className="mx-auto mt-4 max-w-sm text-center text-[0.56rem] uppercase tracking-[0.28em] text-muted-foreground">
+              Obsidiana · Cereza · Perla
+            </p>
+            <div className="mx-auto mt-5 grid max-w-sm grid-cols-2 gap-2">
               <div className="rounded-xl border border-hairline bg-background/60 p-3 backdrop-blur">
                 <p className="text-[0.58rem] uppercase tracking-[0.16em] text-muted-foreground">
                   Modo
@@ -291,7 +288,7 @@ function Landing() {
               {
                 level: "I",
                 name: "Insider",
-                price: "Desde $70 MXN",
+                price: "Desde $120 MXN",
                 description: "La primera llave.",
                 perks: [
                   "Feed editorial",
@@ -304,7 +301,7 @@ function Landing() {
               {
                 level: "II",
                 name: "VIP Club",
-                price: "Desde $200 MXN",
+                price: "Desde $320 MXN",
                 description: "Dentro del círculo.",
                 perks: [
                   "Todo lo de Insider",
@@ -317,7 +314,7 @@ function Landing() {
               {
                 level: "III",
                 name: "Xtrime Inner Circle",
-                price: "Desde $500 MXN",
+                price: "Desde $820 MXN",
                 description: "Donde casi nadie llega.",
                 perks: [
                   "Todo lo de VIP",

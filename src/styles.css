@@ -515,6 +515,137 @@
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Intro cinematográfica y emblema                                     */
+/* ------------------------------------------------------------------ */
+
+@keyframes intro-shell-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes intro-shell-out {
+  to {
+    opacity: 0;
+    transform: scale(1.015);
+    filter: blur(8px);
+  }
+}
+@keyframes intro-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes intro-emblem {
+  0% {
+    opacity: 0;
+    transform: scale(0.76) translateY(18px);
+    filter: blur(24px);
+  }
+  62% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes intro-line {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(7px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes intro-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes emblem-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes emblem-draw {
+  0% {
+    stroke-dashoffset: 420;
+    opacity: 0;
+  }
+  24% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.intro-shell {
+  animation: intro-shell-in 0.6s ease-out both;
+}
+.intro-exit {
+  animation: intro-shell-out 0.75s ease-in both;
+}
+.intro-sweep {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(244, 63, 94, 0.22) 42deg,
+    transparent 118deg,
+    transparent 238deg,
+    rgba(255, 143, 163, 0.14) 298deg,
+    transparent 360deg
+  );
+  animation: intro-sweep 24s linear infinite;
+  filter: blur(26px);
+}
+.intro-vignette {
+  background: radial-gradient(ellipse 72% 62% at 50% 45%, transparent 38%, rgba(4, 2, 3, 0.9) 100%);
+}
+.intro-emblem {
+  animation: intro-emblem 1.9s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+.intro-line {
+  opacity: 0;
+  animation: intro-line 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.intro-progress {
+  animation: intro-progress 10s linear both;
+}
+.emblem-orbit {
+  animation: emblem-orbit 44s linear infinite;
+}
+.emblem-orbit-reverse {
+  animation: emblem-orbit 72s linear infinite reverse;
+}
+.emblem-draw {
+  stroke-dasharray: 420;
+  stroke-dashoffset: 0;
+}
+[data-intro="true"] .emblem-draw {
+  animation: emblem-draw 1.7s 0.4s cubic-bezier(0.3, 0.8, 0.2, 1) both;
+}
+[data-intro="true"] .emblem-draw-late {
+  animation-delay: 0.72s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
@@ -525,8 +656,22 @@
   .animate-marquee,
   .animate-fade-up,
   .animate-equalize,
-  .animate-float-slow {
+  .animate-float-slow,
+  .intro-shell,
+  .intro-sweep,
+  .intro-emblem,
+  .intro-line,
+  .intro-progress,
+  .emblem-orbit,
+  .emblem-orbit-reverse,
+  .emblem-draw {
     animation: none;
+  }
+  .intro-line,
+  .intro-emblem {
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 }
 

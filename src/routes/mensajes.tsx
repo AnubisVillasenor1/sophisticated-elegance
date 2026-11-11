@@ -28,7 +28,7 @@ import {
   btn,
 } from "@/components/lux/ui";
 import { suggestReply } from "@/lib/ai";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatTime } from "@/lib/format";
 import { creatorThreads, fanThreads, getCreator } from "@/lib/selectors";
 import { useApp, useMyCreator } from "@/lib/store";
 import type { Thread } from "@/lib/types";
@@ -448,7 +448,7 @@ function MessagesPage() {
 
       <p className="mt-6 flex items-center justify-center gap-2 text-[0.62rem] text-muted-foreground">
         <Check className="h-3 w-3 text-success" /> Conversaciones guardadas en localStorage ·{" "}
-        {formatDate(new Date().toISOString())}
+        {threads.length} {threads.length === 1 ? "hilo" : "hilos"}
       </p>
     </PlatformShell>
   );

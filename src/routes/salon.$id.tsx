@@ -90,7 +90,7 @@ function findRoom(
 
 function SalonPage() {
   const { id } = Route.useParams();
-  const { state, user, liveTip } = useApp();
+  const { state, user, liveTip, unlock, subscribe } = useApp();
   const found = findRoom(state, id);
   const [entered, setEntered] = useState(false);
   const [tipOpen, setTipOpen] = useState(false);
@@ -132,7 +132,46 @@ function SalonPage() {
   const needsTicket = room.access === "ticket";
   const needsMembership = room.access === "members";
   const isLive = room.status === "live";
-  const canEnter = !isLive || room.access === "free" || Boolean(subscription) || entered;
+  const isOwnerOrAdmin =
+    user?.role === "admin" || (user?.role === "creator" && user.creatorSlug === creator.slug);
+  const canEnter =
+    !isLive || room.access === "free" || Boolean(subscription) || entered || isOwnerOrAdmin;
+
+  const enterRoom = () => {
+    if (!user) return;
+    if (needsMembership) {
+      const tier = [...creator.tiers].sort((a, b) => a.priceMXN - b.priceMXN)[0];
+      if (!tier) {
+        toast.error("Esta creadora aún no publicó planes.");
+        return;
+      }
+      const result = subscribe(creator.id, tier.id, false);
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success(result.message);
+      setEntered(true);
+      return;
+    }
+    if (needsTicket) {
+      const result = unlock(
+        "ticket",
+        creator.id,
+        room.id,
+        `Boleto · ${room.title}`,
+        room.ticketPriceMXN,
+      );
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success(result.message);
+      setEntered(true);
+      return;
+    }
+    setEntered(true);
+  };
 
   const sendMessage = () => {
     const body = draft.trim();
@@ -229,17 +268,20 @@ function SalonPage() {
                                 : "Inicia sesión para continuar."}
                           </p>
                           <div className="mt-4 flex flex-col gap-2">
-                            <Button
-                              onClick={() => {
-                                if (needsTicket) {
-                                  liveTip(creator.id, room.id, 0);
-                                  toast("Boleto DEMO registrado. Sin cargo real.");
-                                }
-                                setEntered(true);
-                              }}
-                            >
-                              <Ticket className="h-4 w-4" /> Entrar en Modo DEMO
-                            </Button>
+                            {!user ? (
+                              <Link to="/entrar" className={btn("primary", "md")}>
+                                <Lock className="h-4 w-4" /> Iniciar sesión para entrar
+                              </Link>
+                            ) : (
+                              <Button onClick={enterRoom}>
+                                <Ticket className="h-4 w-4" />
+                                {needsMembership
+                                  ? "Activar membresía DEMO"
+                                  : needsTicket
+                                    ? `Comprar boleto · ${formatMoney(room.ticketPriceMXN, state.currency)}`
+                                    : "Entrar en Modo DEMO"}
+                              </Button>
+                            )}
                             <Link
                               to="/creadora/$slug"
                               params={{ slug: creator.slug }}
@@ -456,6 +498,7 @@ function SalonPage() {
       <TipDialog
         creator={creator}
         roomId={room.id}
+        initialAmount={tipAmount}
         open={tipOpen}
         onClose={() => setTipOpen(false)}
       />
@@ -464,7 +507,6 @@ function SalonPage() {
         open={reportOpen}
         onClose={() => setReportOpen(false)}
       />
-      <span className="hidden">{tipAmount}</span>
     </SiteLayout>
   );
 }

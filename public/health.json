@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "service": "xclusive",
+  "mode": "demo",
+  "legalVersion": "2026.1",
+  "adultContent": "disabled",
+  "payments": "simulated",
+  "note": "Modo DEMO: sin cobros, retiros ni saldos reales. El contenido adulto permanece deshabilitado hasta completar verificación de edad certificada, consentimiento documentado, revisión legal y aprobación del PSP."
+}

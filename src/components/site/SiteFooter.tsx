@@ -112,6 +112,17 @@ export function SiteFooter() {
                 </a>
               </li>
               <li>
+                <a
+                  href={`mailto:${state.settings.legalEmail}`}
+                  className="inline-flex items-center gap-2 hover:text-pearl"
+                >
+                  <Mail className="h-3.5 w-3.5" /> Legal y contratos
+                </a>
+              </li>
+              <li className="break-all font-mono text-[0.65rem] text-muted-foreground/70">
+                {state.settings.domain}
+              </li>
+              <li>
                 <Link to="/ayuda" className="inline-flex items-center gap-2 hover:text-pearl">
                   <ArrowUpRight className="h-3.5 w-3.5" /> Centro de ayuda
                 </Link>
@@ -121,9 +132,14 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-hairline pt-6 text-[0.66rem] text-muted-foreground md:flex-row md:items-center md:justify-between">
-          <p>© 2026 TAMV Online Network · Xclusive. Todos los derechos reservados.</p>
+          <p>
+            © 2026 TAMV Online Network · {state.settings.brandName}. Todos los derechos reservados.
+          </p>
           <p className="max-w-2xl md:text-right">
-            {LEGAL_STATUS}. Documentos versión {state.settings.termsVersion}. No constituyen
+            <Link to="/legal" className="underline-offset-4 hover:text-pearl hover:underline">
+              Marco legal
+            </Link>{" "}
+            · {LEGAL_STATUS}. Documentos versión {state.settings.termsVersion}. No constituyen
             asesoría legal ni una oferta de cobro.
           </p>
         </div>

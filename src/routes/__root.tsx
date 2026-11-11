@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { AgeGate } from "../components/site/AgeGate";
+import { CinematicIntro } from "../components/site/CinematicIntro";
 import { CookieConsent } from "../components/site/CookieConsent";
 import { Toaster } from "../components/ui/sonner";
 import { AppProvider } from "../lib/store";
@@ -87,38 +88,63 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Xclusive — Un paraíso prohibido" },
-      {
-        name: "description",
-        content:
-          "Club privado editorial para creadoras independientes. Membresías, salones en vivo y bóveda protegida.",
-      },
-      { name: "author", content: "TAMV Online Network" },
-      { name: "theme-color", content: "#0d0709" },
-      { property: "og:title", content: "Xclusive — Un paraíso prohibido" },
-      {
-        property: "og:description",
-        content:
-          "Club privado editorial para creadoras independientes y sus comunidades más cercanas.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap",
-      },
-    ],
-  }),
+  head: ({ matches }) => {
+    const pathname = matches.at(-1)?.pathname ?? "/";
+    const canonical = `https://xclusive.tamvonline.network${pathname === "/" ? "/" : pathname.replace(/\/$/, "")}`;
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: "Xclusive — Un paraíso prohibido" },
+        {
+          name: "description",
+          content:
+            "Club privado editorial para creadoras independientes. Membresías, salones en vivo y bóveda protegida.",
+        },
+        { name: "author", content: "TAMV Online Network" },
+        { name: "theme-color", content: "#0d0709" },
+        { name: "robots", content: "index,follow" },
+        { property: "og:site_name", content: "Xclusive" },
+        { property: "og:locale", content: "es_MX" },
+        { property: "og:url", content: canonical },
+        { property: "og:title", content: "Xclusive — Un paraíso prohibido" },
+        {
+          property: "og:description",
+          content:
+            "Club privado editorial para creadoras independientes y sus comunidades más cercanas.",
+        },
+        { property: "og:type", content: "website" },
+        {
+          property: "og:image",
+          content: "https://xclusive.tamvonline.network/og.png",
+        },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        {
+          property: "og:image:alt",
+          content: "Emblema de Xclusive: gota de obsidiana con monograma X",
+        },
+        { name: "twitter:card", content: "summary_large_image" },
+        {
+          name: "twitter:image",
+          content: "https://xclusive.tamvonline.network/og.png",
+        },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "canonical", href: canonical },
+        { rel: "icon", href: "/favicon.png", type: "image/png" },
+        { rel: "apple-touch-icon", href: "/icon-192.png" },
+        { rel: "manifest", href: "/manifest.webmanifest" },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap",
+        },
+      ],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -147,6 +173,7 @@ function RootComponent() {
       <AppProvider>
         <Outlet />
         <AgeGate />
+        <CinematicIntro />
         <CookieConsent />
         <Toaster position="top-center" />
       </AppProvider>

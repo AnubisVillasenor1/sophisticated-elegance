@@ -4,11 +4,18 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 
 import { autoReplyForFan } from "./ai";
+import {
+  platformFeeMXN,
+  resolveItemPrice,
+  validateTipAmount,
+  type PriceResolution,
+} from "./commerce";
 import { addDaysISO, demoHash, slugify } from "./format";
 import { REQUIRED_DOCS_CREATOR, REQUIRED_DOCS_FAN, LEGAL_VERSION, legalDoc } from "./legal";
 import { createSeedState } from "./seed";
@@ -67,6 +74,7 @@ export type SignupInput = {
   socials: string;
   bio: string;
   acceptedDocIds: string[];
+  referralCode?: string;
 };
 
 export type PostInput = {
@@ -135,6 +143,7 @@ export type AppApi = {
   state: AppState;
   user: User | null;
   hydrated: boolean;
+  storageError: boolean;
   login: (email: string, password: string) => AuthResult;
   signup: (input: SignupInput) => AuthResult;
   logout: () => void;
@@ -191,13 +200,14 @@ export type AppApi = {
   rejectApplication: (applicationId: string) => ActionResult;
   resolveReport: (reportId: string, resolution: string) => ActionResult;
   markPayoutPaid: (payoutId: string) => ActionResult;
-  updateSettings: (patch: Partial<Settings>) => void;
+  updateSettings: (patch: Partial<Settings>) => ActionResult;
   setCreatorShare: (creatorId: string, share: number) => ActionResult;
   setCreatorStatus: (creatorId: string, status: Creator["status"]) => ActionResult;
   submitDataRequest: (type: DataRequest["type"], details: string) => ActionResult;
-  resolveDataRequest: (requestId: string) => void;
+  resolveDataRequest: (requestId: string) => ActionResult;
   acceptLegal: (docIds: string[]) => ActionResult;
   markNotificationRead: (notificationId: string) => void;
+  registerReferralClick: (code: string) => void;
   canViewPost: (post: Post) => boolean;
   hasPurchased: (itemId: string) => boolean;
   purchaseFor: (itemId: string) => Purchase | null;
@@ -230,7 +240,7 @@ function priceTransaction(
   grossMXN: number,
   fanId: string,
 ): Transaction {
-  const fee = Math.round((grossMXN * (100 - creator.revenueShare)) / 100);
+  const fee = platformFeeMXN(grossMXN, creator.revenueShare);
   return {
     id: uid("tx"),
     creatorId: creator.id,
@@ -300,27 +310,98 @@ function makeAcceptance(
   };
 }
 
+const ARRAY_FIELDS = [
+  "users",
+  "creators",
+  "subscriptions",
+  "purchases",
+  "transactions",
+  "payouts",
+  "threads",
+  "reports",
+  "applications",
+  "referrals",
+  "notifications",
+  "dataRequests",
+  "favorites",
+] as const;
+
+/**
+ * Valida y repara el estado hidratado desde localStorage.
+ *
+ * Un JSON corrupto, una versión desconocida o una colección con forma
+ * inesperada se descarta y se reemplaza por la semilla. Nunca se confía en el
+ * contenido almacenado para precios, permisos o sesión.
+ */
+export function normalizeStoredState(parsed: unknown): AppState | null {
+  if (!parsed || typeof parsed !== "object") return null;
+  const candidate = parsed as Partial<AppState>;
+  if (candidate.version !== 1) return null;
+  if (!Array.isArray(candidate.creators) || candidate.creators.length === 0) return null;
+
+  const seed = createSeedState();
+  const merged: AppState = { ...seed, ...candidate, hydrated: true };
+
+  for (const key of ARRAY_FIELDS) {
+    if (!Array.isArray(merged[key])) {
+      (merged as unknown as Record<string, unknown>)[key] = seed[key];
+    }
+  }
+
+  merged.settings = { ...seed.settings, ...(candidate.settings ?? {}) };
+  merged.currency = ["MXN", "USD", "EUR"].includes(merged.currency) ? merged.currency : "MXN";
+
+  // Saneamiento de creadoras: garantiza arreglos internos y campos numéricos.
+  merged.creators = merged.creators
+    .filter(
+      (creator) => creator && typeof creator.id === "string" && typeof creator.slug === "string",
+    )
+    .map((creator) => ({
+      ...creator,
+      tiers: Array.isArray(creator.tiers) ? creator.tiers : [],
+      posts: Array.isArray(creator.posts) ? creator.posts : [],
+      clips: Array.isArray(creator.clips) ? creator.clips : [],
+      rooms: Array.isArray(creator.rooms) ? creator.rooms : [],
+      offers: Array.isArray(creator.offers) ? creator.offers : [],
+      bundles: Array.isArray(creator.bundles) ? creator.bundles : [],
+      revenueShare: Math.max(0, Math.min(100, Number(creator.revenueShare) || 80)),
+      status: ["approved", "pending", "suspended"].includes(creator.status)
+        ? creator.status
+        : "pending",
+    }));
+
+  // La sesión solo puede apuntar a una cuenta existente.
+  if (merged.sessionUserId && !merged.users.some((u) => u.id === merged.sessionUserId)) {
+    merged.sessionUserId = null;
+  }
+
+  return merged;
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => createSeedState());
   const [hydrated, setHydrated] = useState(false);
+  const [storageError, setStorageError] = useState(false);
+  const aiTimers = useRef<number[]>([]);
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<AppState>;
-        if (parsed.version === 1 && Array.isArray(parsed.creators) && parsed.creators.length > 0) {
-          const seed = createSeedState();
-          setState({
-            ...seed,
-            ...parsed,
-            settings: { ...seed.settings, ...(parsed.settings ?? {}) },
-            hydrated: true,
-          });
+        const normalized = normalizeStoredState(JSON.parse(raw));
+        if (normalized) {
+          setState(normalized);
+        } else {
+          window.localStorage.removeItem(STORAGE_KEY);
         }
       }
     } catch {
-      // Un entorno corrupto se reinicia de forma segura.
+      // Un entorno corrupto se descarta de forma segura.
+      try {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Almacenamiento no disponible.
+      }
     } finally {
       setHydrated(true);
     }
@@ -330,10 +411,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, hydrated: false }));
+      setStorageError(false);
     } catch {
-      // Sin espacio o modo privado: el prototipo sigue funcionando en memoria.
+      try {
+        // Cuota agotada: conserva lo esencial y descarta historial antiguo.
+        const slim: AppState = {
+          ...state,
+          hydrated: false,
+          notifications: state.notifications.slice(0, 40),
+          transactions: state.transactions.slice(0, 200),
+          purchases: state.purchases.slice(0, 200),
+          reports: state.reports.slice(0, 50),
+          dataRequests: state.dataRequests.slice(0, 50),
+        };
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+        setStorageError(false);
+      } catch {
+        setStorageError(true);
+      }
     }
   }, [state, hydrated]);
+
+  // Sincroniza el estado entre pestañas del mismo navegador.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY) return;
+      if (!event.newValue) {
+        setState({ ...createSeedState(), hydrated: true });
+        return;
+      }
+      try {
+        const next = normalizeStoredState(JSON.parse(event.newValue));
+        if (next) setState(next);
+      } catch {
+        // Ignora escrituras ajenas corruptas.
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // Limpia las respuestas simuladas de IA pendientes al desmontar.
+  useEffect(() => {
+    const timers = aiTimers;
+    return () => {
+      timers.current.forEach((id) => window.clearTimeout(id));
+      timers.current = [];
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -380,6 +505,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       const id = uid("u");
       const now = new Date().toISOString();
+      const referralCode = (input.referralCode ?? "").trim().toUpperCase();
+      const referral = referralCode
+        ? (state.referrals.find((r) => r.code.toUpperCase() === referralCode) ?? null)
+        : null;
       const acceptances = required.map((docId) =>
         makeAcceptance(id, docId, input.role === "creator" ? "creadora" : "registro"),
       );
@@ -393,6 +522,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         joinedAt: now,
         avatarTint: input.role === "creator" ? "#ed315c" : "#c56c83",
         referralCode: `XCL-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+        referredByCode: referral?.code ?? null,
         legalAcceptances: acceptances,
       };
       const application: Application | null =
@@ -416,18 +546,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
         sessionUserId: id,
         users: [...prev.users, newUser],
         applications: application ? [application, ...prev.applications] : prev.applications,
-        notifications: application
-          ? [
-              notify(
-                prev,
-                "u-admin",
-                "Nueva solicitud de creadora",
-                `${newUser.name} envió su solicitud.`,
-                "/admin",
-              ),
-              ...prev.notifications,
-            ]
-          : prev.notifications,
+        referrals: referral
+          ? prev.referrals.map((r) => (r.id === referral.id ? { ...r, signups: r.signups + 1 } : r))
+          : prev.referrals,
+        notifications: [
+          ...(referral
+            ? [
+                notify(
+                  prev,
+                  creatorUser(prev, referral.creatorId)?.id ?? "u-admin",
+                  "Nuevo registro con tu código",
+                  `${newUser.name} llegó con ${referral.code}.`,
+                  "/estudio",
+                ),
+              ]
+            : []),
+          ...(application
+            ? [
+                notify(
+                  prev,
+                  "u-admin",
+                  "Nueva solicitud de creadora",
+                  `${newUser.name} envió su solicitud.`,
+                  "/admin",
+                ),
+              ]
+            : []),
+          ...prev.notifications,
+        ],
       }));
       return {
         ok: true,
@@ -439,7 +585,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         creatorSlug: null,
       };
     },
-    [state.users],
+    [state.users, state.referrals],
   );
 
   const logout = useCallback(() => {
@@ -452,7 +598,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch {
       // noop
     }
-    setState({ ...createSeedState(), hydrated: true, ageVerified: true });
+    aiTimers.current.forEach((id) => window.clearTimeout(id));
+    aiTimers.current = [];
+    setState((prev) => ({
+      ...createSeedState(),
+      hydrated: true,
+      // Reiniciar el DEMO no debe reabrir la puerta de edad ya verificada.
+      ageVerified: prev.ageVerified,
+      cookieConsent: prev.cookieConsent,
+    }));
     setHydrated(true);
   }, []);
 
@@ -479,23 +633,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const toggleFavorite = useCallback(
     (creatorId: string): ActionResult => {
       if (!user) return { ok: false, message: "Inicia sesión para guardar favoritos." };
-      setState((prev) => {
-        const exists = prev.favorites.includes(creatorId);
-        return {
-          ...prev,
-          favorites: exists
-            ? prev.favorites.filter((id) => id !== creatorId)
-            : [creatorId, ...prev.favorites],
-        };
-      });
+      if (!getCreator(state, creatorId)) return { ok: false, message: "Creadora no encontrada." };
+      const exists = state.favorites.includes(creatorId);
+      setState((prev) => ({
+        ...prev,
+        favorites: exists
+          ? prev.favorites.filter((id) => id !== creatorId)
+          : [creatorId, ...prev.favorites],
+      }));
       return {
         ok: true,
-        message: state.favorites.includes(creatorId)
-          ? "Perfil guardado."
-          : "Perfil eliminado de favoritos.",
+        message: exists ? "Perfil eliminado de favoritos." : "Perfil guardado.",
       };
     },
-    [state.favorites, user],
+    [state, user],
   );
 
   const subscribe = useCallback(
@@ -504,6 +655,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const creator = getCreator(state, creatorId);
       const tier = creator ? getTier(creator, tierId) : null;
       if (!creator || !tier) return { ok: false, message: "El plan ya no está disponible." };
+      if (creator.status !== "approved")
+        return { ok: false, message: "Este perfil no está aceptando membresías." };
       if (trial && !creator.freeTrial)
         return { ok: false, message: "Esta creadora no tiene prueba gratuita." };
       if (
@@ -599,9 +752,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const tip = useCallback(
     (creatorId: string, amountMXN: number, note: string): ActionResult => {
       if (!user) return { ok: false, message: "Inicia sesión para enviar una propina." };
-      if (amountMXN <= 0) return { ok: false, message: "Elige un monto válido." };
+      const amount = Math.round(amountMXN);
+      const invalid = validateTipAmount(amount);
+      if (invalid) return { ok: false, message: invalid };
       const creator = getCreator(state, creatorId);
       if (!creator) return { ok: false, message: "Creadora no encontrada." };
+      if (creator.status !== "approved")
+        return { ok: false, message: "Esta creadora no está aceptando propinas." };
       const now = new Date().toISOString();
       const purchase: Purchase = {
         id: uid("pu"),
@@ -610,7 +767,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         kind: "tip",
         itemId: uid("tip"),
         label: note.trim() ? `Propina · ${note.trim()}` : "Propina",
-        amountMXN,
+        amountMXN: amount,
         createdAt: now,
         status: "delivered",
       };
@@ -618,7 +775,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...prev,
         purchases: [purchase, ...prev.purchases],
         transactions: [
-          priceTransaction(prev, creator, "tip", amountMXN, user.id),
+          priceTransaction(prev, creator, "tip", amount, user.id),
           ...prev.transactions,
         ],
         notifications: [
@@ -648,16 +805,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user) return { ok: false, message: "Inicia sesión para desbloquear." };
       const creator = getCreator(state, creatorId);
       if (!creator) return { ok: false, message: "Creadora no encontrada." };
+      if (creator.status !== "approved")
+        return { ok: false, message: "El perfil no está disponible para compras." };
+      if (user.role === "creator" && user.creatorSlug === creator.slug)
+        return { ok: false, message: "No puedes comprar tu propio contenido." };
       if (hasPurchased(state, user.id, itemId))
         return { ok: false, message: "Ya tienes acceso a esta pieza." };
+
+      // El precio se resuelve desde el catálogo, no desde la interfaz.
+      let priceMXN: number;
+      let finalLabel = label;
+      if (kind === "tip") {
+        const invalid = validateTipAmount(Math.round(amountMXN));
+        if (invalid) return { ok: false, message: invalid };
+        priceMXN = Math.round(amountMXN);
+      } else {
+        const resolution: PriceResolution = resolveItemPrice(state, creatorId, kind, itemId);
+        if (!resolution.ok) return { ok: false, message: resolution.message };
+        priceMXN = resolution.priceMXN;
+        finalLabel = resolution.label;
+      }
+
       const purchase: Purchase = {
         id: uid("pu"),
         fanId: user.id,
         creatorId,
         kind,
         itemId,
-        label,
-        amountMXN,
+        label: finalLabel,
+        amountMXN: priceMXN,
         createdAt: new Date().toISOString(),
         status: kind === "custom" ? "in_progress" : "delivered",
       };
@@ -665,15 +841,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...prev,
         purchases: [purchase, ...prev.purchases],
         transactions:
-          amountMXN > 0
-            ? [priceTransaction(prev, creator, kind, amountMXN, user.id), ...prev.transactions]
+          priceMXN > 0
+            ? [priceTransaction(prev, creator, kind, priceMXN, user.id), ...prev.transactions]
             : prev.transactions,
         notifications: [
           notify(
             prev,
             creatorUser(prev, creatorId)?.id ?? "u-admin",
             kind === "custom" ? "Nuevo encargo" : "Nueva compra",
-            `${user.name} · ${label}`,
+            `${user.name} · ${finalLabel}`,
             "/estudio",
           ),
           ...prev.notifications,
@@ -766,7 +942,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const creator = getCreator(state, thread.creatorId);
       if (!isCreatorOfThread && creator && creator.aiAssistant && state.settings.aiEnabled) {
         const reply = autoReplyForFan(clean, creator);
-        window.setTimeout(() => {
+        const timer = window.setTimeout(() => {
+          aiTimers.current = aiTimers.current.filter((id) => id !== timer);
           setState((prev) => ({
             ...prev,
             threads: prev.threads.map((t) =>
@@ -791,6 +968,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ),
           }));
         }, 1400);
+        aiTimers.current.push(timer);
       }
       return { ok: true, message: "Mensaje enviado." };
     },
@@ -993,17 +1171,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const liveTip = useCallback(
     (creatorId: string, roomId: string, amountMXN: number): ActionResult => {
       if (!user) return { ok: false, message: "Inicia sesión para enviar propinas." };
-      if (amountMXN <= 0) return { ok: false, message: "Monto inválido." };
+      const amount = Math.round(amountMXN);
+      const invalid = validateTipAmount(amount);
+      if (invalid) return { ok: false, message: invalid };
       const creator = getCreator(state, creatorId);
       if (!creator) return { ok: false, message: "Creadora no encontrada." };
+      if (creator.status !== "approved")
+        return { ok: false, message: "El perfil no está disponible." };
+      const room = creator.rooms.find((r) => r.id === roomId);
+      if (!room) return { ok: false, message: "Salón no encontrado." };
+      if (room.status !== "live")
+        return { ok: false, message: "El salón no está transmitiendo ahora." };
       const purchase: Purchase = {
         id: uid("pu"),
         fanId: user.id,
         creatorId,
         kind: "tip",
         itemId: roomId,
-        label: `Propina en vivo · ${creator.rooms.find((r) => r.id === roomId)?.title ?? "Salón"}`,
-        amountMXN,
+        label: `Propina en vivo · ${room.title}`,
+        amountMXN: amount,
         createdAt: new Date().toISOString(),
         status: "delivered",
       };
@@ -1011,7 +1197,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...prev,
         purchases: [purchase, ...prev.purchases],
         transactions: [
-          priceTransaction(prev, creator, "tip", amountMXN, user.id),
+          priceTransaction(prev, creator, "tip", amount, user.id),
           ...prev.transactions,
         ],
         creators: prev.creators.map((c) =>
@@ -1019,9 +1205,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...c,
                 rooms: c.rooms.map((r) =>
-                  r.id === roomId
-                    ? { ...r, tipsMXN: r.tipsMXN + amountMXN, viewers: r.viewers + 1 }
-                    : r,
+                  r.id === roomId ? { ...r, tipsMXN: r.tipsMXN + amount } : r,
                 ),
               }
             : c,
@@ -1255,6 +1439,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const approveApplication = useCallback(
     (applicationId: string): ActionResult => {
+      if (!user || user.role !== "admin")
+        return { ok: false, message: "Solo la administración puede aprobar solicitudes." };
       const app = state.applications.find((a) => a.id === applicationId);
       if (!app) return { ok: false, message: "Solicitud no encontrada." };
       if (app.status === "approved")
@@ -1333,27 +1519,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }));
       return { ok: true, message: "Solicitud aprobada y perfil creado.", id: creatorId };
     },
-    [state.applications, state.creators, state.settings],
+    [state.applications, state.creators, state.settings, user],
   );
 
-  const rejectApplication = useCallback((applicationId: string): ActionResult => {
-    setState((prev) => ({
-      ...prev,
-      applications: prev.applications.map((a) =>
-        a.id === applicationId
-          ? {
-              ...a,
-              status: "rejected",
-              note: "Rechazada en revisión DEMO. Puede volver a postular.",
-            }
-          : a,
-      ),
-    }));
-    return { ok: true, message: "Solicitud rechazada. Se conserva el registro." };
-  }, []);
+  const rejectApplication = useCallback(
+    (applicationId: string): ActionResult => {
+      if (!user || user.role !== "admin")
+        return { ok: false, message: "Solo la administración puede rechazar solicitudes." };
+      const app = state.applications.find((a) => a.id === applicationId);
+      if (!app) return { ok: false, message: "Solicitud no encontrada." };
+      setState((prev) => ({
+        ...prev,
+        applications: prev.applications.map((a) =>
+          a.id === applicationId
+            ? {
+                ...a,
+                status: "rejected",
+                note: "Rechazada en revisión DEMO. Puede volver a postular.",
+              }
+            : a,
+        ),
+      }));
+      return { ok: true, message: "Solicitud rechazada. Se conserva el registro." };
+    },
+    [state.applications, user],
+  );
 
   const resolveReport = useCallback(
     (reportId: string, resolution: string): ActionResult => {
+      if (!user || user.role !== "admin")
+        return { ok: false, message: "Solo la administración puede resolver reportes." };
       const report = state.reports.find((r) => r.id === reportId);
       if (!report) return { ok: false, message: "Reporte no encontrado." };
       setState((prev) => ({
@@ -1382,11 +1577,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }));
       return { ok: true, message: "Reporte resuelto y archivado." };
     },
-    [state.reports],
+    [state.reports, user],
   );
 
   const markPayoutPaid = useCallback(
     (payoutId: string): ActionResult => {
+      if (!user || user.role !== "admin")
+        return { ok: false, message: "Solo la administración puede marcar retiros." };
       const payout = state.payouts.find((p) => p.id === payoutId);
       if (!payout) return { ok: false, message: "Retiro no encontrado." };
       setState((prev) => ({
@@ -1407,31 +1604,69 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }));
       return { ok: true, message: "Retiro marcado como pagado (DEMO)." };
     },
-    [state.payouts],
+    [state.payouts, user],
   );
 
-  const updateSettings = useCallback((patch: Partial<Settings>) => {
-    setState((prev) => {
-      const settings = { ...prev.settings, ...patch };
-      return {
-        ...prev,
-        settings,
-        currency: patch.defaultCurrency ?? prev.currency,
-      };
-    });
-  }, []);
+  const updateSettings = useCallback(
+    (patch: Partial<Settings>): ActionResult => {
+      if (!user || user.role !== "admin")
+        return { ok: false, message: "Solo la administración puede cambiar la configuración." };
+      const next: Settings = { ...state.settings, ...patch };
+      if (!next.brandName.trim())
+        return { ok: false, message: "El nombre de marca no puede quedar vacío." };
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next.supportEmail.trim()))
+        return { ok: false, message: "El correo de soporte no es válido." };
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next.legalEmail.trim()))
+        return { ok: false, message: "El correo legal no es válido." };
+      if (!/^#[0-9a-fA-F]{6}$/.test(next.accent.trim()))
+        return { ok: false, message: "El color de acento debe ser un hex de 6 dígitos." };
+      const domain = next.domain
+        .trim()
+        .replace(/^https?:\/\//i, "")
+        .replace(/\/.*$/, "");
+      if (!domain.includes("."))
+        return { ok: false, message: "El dominio debe incluir una extensión, por ejemplo .com." };
 
-  const setCreatorShare = useCallback((creatorId: string, share: number): ActionResult => {
-    const safe = Math.max(50, Math.min(100, Math.round(share)));
-    setState((prev) => ({
-      ...prev,
-      creators: prev.creators.map((c) => (c.id === creatorId ? { ...c, revenueShare: safe } : c)),
-    }));
-    return { ok: true, message: `Reparto actualizado a ${safe}% para la creadora.` };
-  }, []);
+      setState((prev) => ({
+        ...prev,
+        settings: {
+          ...prev.settings,
+          ...patch,
+          brandName: next.brandName.trim(),
+          supportEmail: next.supportEmail.trim(),
+          privacyEmail: next.privacyEmail.trim(),
+          legalEmail: next.legalEmail.trim(),
+          tagline: next.tagline.trim() || prev.settings.tagline,
+          accent: next.accent.trim(),
+          domain,
+        },
+        currency: patch.defaultCurrency ?? prev.currency,
+      }));
+      return { ok: true, message: "Configuración aplicada en el prototipo." };
+    },
+    [state.settings, user],
+  );
+
+  const setCreatorShare = useCallback(
+    (creatorId: string, share: number): ActionResult => {
+      if (!user || user.role !== "admin")
+        return { ok: false, message: "Solo la administración puede cambiar el reparto." };
+      if (!getCreator(state, creatorId)) return { ok: false, message: "Creadora no encontrada." };
+      const safe = Math.max(50, Math.min(100, Math.round(share)));
+      setState((prev) => ({
+        ...prev,
+        creators: prev.creators.map((c) => (c.id === creatorId ? { ...c, revenueShare: safe } : c)),
+      }));
+      return { ok: true, message: `Reparto actualizado a ${safe}% para la creadora.` };
+    },
+    [state, user],
+  );
 
   const setCreatorStatus = useCallback(
     (creatorId: string, status: Creator["status"]): ActionResult => {
+      if (!user || user.role !== "admin")
+        return { ok: false, message: "Solo la administración puede cambiar el estado del perfil." };
+      if (!getCreator(state, creatorId)) return { ok: false, message: "Creadora no encontrada." };
       setState((prev) => ({
         ...prev,
         creators: prev.creators.map((c) => (c.id === creatorId ? { ...c, status } : c)),
@@ -1446,7 +1681,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               : "Perfil en revisión.",
       };
     },
-    [],
+    [state, user],
   );
 
   const submitDataRequest = useCallback(
@@ -1487,14 +1722,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
-  const resolveDataRequest = useCallback((requestId: string) => {
-    setState((prev) => ({
-      ...prev,
-      dataRequests: prev.dataRequests.map((r) =>
-        r.id === requestId ? { ...r, status: "resuelta" } : r,
-      ),
-    }));
-  }, []);
+  const resolveDataRequest = useCallback(
+    (requestId: string): ActionResult => {
+      if (!user || user.role !== "admin")
+        return { ok: false, message: "Solo la administración puede resolver solicitudes ARCO." };
+      const request = state.dataRequests.find((r) => r.id === requestId);
+      if (!request) return { ok: false, message: "Solicitud no encontrada." };
+      setState((prev) => ({
+        ...prev,
+        dataRequests: prev.dataRequests.map((r) =>
+          r.id === requestId ? { ...r, status: "resuelta" } : r,
+        ),
+        notifications: [
+          notify(
+            prev,
+            request.userId,
+            "Solicitud ARCO resuelta",
+            `Tu solicitud de ${request.type} fue atendida.`,
+            "/cuenta",
+          ),
+          ...prev.notifications,
+        ],
+      }));
+      return { ok: true, message: "Solicitud ARCO resuelta y notificada." };
+    },
+    [state.dataRequests, user],
+  );
 
   const acceptLegal = useCallback(
     (docIds: string[]): ActionResult => {
@@ -1533,6 +1786,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const registerReferralClick = useCallback((code: string) => {
+    const clean = code.trim().toUpperCase();
+    if (!clean) return;
+    try {
+      const key = `xclusive.ref.${clean}`;
+      if (window.sessionStorage.getItem(key)) return;
+      window.sessionStorage.setItem(key, "1");
+    } catch {
+      // sessionStorage bloqueado: se registra solo en memoria.
+    }
+    setState((prev) => ({
+      ...prev,
+      referrals: prev.referrals.map((r) =>
+        r.code.toUpperCase() === clean ? { ...r, clicks: r.clicks + 1 } : r,
+      ),
+    }));
+  }, []);
+
   const canViewPost = useCallback(
     (post: Post): boolean => canViewPostSelector(state, post, user?.id ?? null),
     [state, user],
@@ -1552,6 +1823,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     state,
     user,
     hydrated,
+    storageError,
     login,
     signup,
     logout,
@@ -1592,6 +1864,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     resolveDataRequest,
     acceptLegal,
     markNotificationRead,
+    registerReferralClick,
     canViewPost,
     hasPurchased: hasPurchasedAction,
     purchaseFor: purchaseForAction,

@@ -155,6 +155,7 @@ export type User = {
   joinedAt: string;
   avatarTint: string;
   referralCode: string;
+  referredByCode?: string | null;
   legalAcceptances: LegalAcceptance[];
 };
 

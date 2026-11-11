@@ -37,6 +37,7 @@ export function SiteHeader() {
   const home = pathname === "/";
   const dashboard =
     user?.role === "creator" ? "/estudio" : user?.role === "admin" ? "/admin" : "/cuenta";
+  const nav = NAV.filter((item) => item.to !== "/salones" || state.settings.liveEnabled);
 
   return (
     <header
@@ -47,11 +48,16 @@ export function SiteHeader() {
           : "bg-transparent",
       )}
     >
+      {state.settings.maintenance ? (
+        <div className="border-b border-warning/30 bg-warning/15 px-4 py-1.5 text-center text-[0.58rem] uppercase tracking-[0.2em] text-warning">
+          Mantenimiento programado · algunas funciones pueden estar limitadas
+        </div>
+      ) : null}
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:h-18 lg:px-10">
         <Logo />
 
         <nav className="ml-6 hidden items-center gap-1 lg:flex">
-          {NAV.map((item) => {
+          {nav.map((item) => {
             const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
             return (
               <Link
@@ -155,7 +161,7 @@ export function SiteHeader() {
       {open ? (
         <div className="border-t border-hairline bg-background/95 px-4 pb-6 pt-3 backdrop-blur-xl lg:hidden">
           <div className="grid gap-1">
-            {NAV.map((item) => (
+            {nav.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}

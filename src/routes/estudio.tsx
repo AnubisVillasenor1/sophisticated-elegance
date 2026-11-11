@@ -682,6 +682,7 @@ function ContenidoTab({ creator }: { creator: Creator }) {
       </SectionCard>
 
       <div className="space-y-4 lg:col-span-7">
+        <ClipsManager creator={creator} />
         {creator.posts.length === 0 ? (
           <EmptyState
             title="Tu feed está en blanco."
@@ -746,6 +747,137 @@ function ContenidoTab({ creator }: { creator: Creator }) {
         )}
       </div>
     </div>
+  );
+}
+
+function ClipsManager({ creator }: { creator: Creator }) {
+  const { state, createClip } = useApp();
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    category: "Editorial",
+    priceMXN: 120,
+    duration: "08:00",
+    cover: creator.cover as CoverKey,
+    mature: false,
+  });
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = createClip(creator.id, {
+      title: form.title,
+      description: form.description,
+      category: form.category,
+      priceMXN: Math.max(0, Math.round(Number(form.priceMXN) || 0)),
+      duration: form.duration,
+      cover: form.cover,
+      mature: form.mature,
+    });
+    toast(result.message);
+    if (result.ok) setForm((prev) => ({ ...prev, title: "", description: "" }));
+  };
+
+  return (
+    <SectionCard
+      title="Clips del marketplace"
+      description="Piezas cortas con precio propio. Cada venta muestra el desglose de comisiones."
+    >
+      <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <Field label="Título" required>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Nombre del clip"
+              required
+            />
+          </Field>
+        </div>
+        <div className="sm:col-span-2">
+          <Field label="Descripción" hint="Contenido editorial, no explícito.">
+            <Textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Qué muestra el clip y por qué es distinto."
+            />
+          </Field>
+        </div>
+        <Field label="Categoría">
+          <Input
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            placeholder="Editorial"
+          />
+        </Field>
+        <Field label={`Precio (${state.currency})`}>
+          <Input
+            type="number"
+            min={0}
+            value={form.priceMXN}
+            onChange={(e) => setForm({ ...form, priceMXN: Number(e.target.value) })}
+          />
+        </Field>
+        <Field label="Duración" hint="Formato mm:ss.">
+          <Input
+            value={form.duration}
+            onChange={(e) => setForm({ ...form, duration: e.target.value })}
+            placeholder="08:00"
+          />
+        </Field>
+        <Field label="Portada">
+          <Select
+            value={form.cover}
+            onChange={(e) => setForm({ ...form, cover: e.target.value as CoverKey })}
+          >
+            {COVERS.map((cover) => (
+              <option key={cover} value={cover}>
+                {cover}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <div className="sm:col-span-2">
+          <Switch
+            checked={form.mature}
+            onChange={(value) => setForm({ ...form, mature: value })}
+            label="Marcar como 18+"
+            description="El contenido adulto sigue deshabilitado hasta completar verificación y revisión legal."
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Button type="submit" size="sm">
+            <Plus className="h-3.5 w-3.5" /> Publicar clip
+          </Button>
+        </div>
+      </form>
+
+      <div className="mt-5 space-y-2.5 border-t border-hairline pt-4">
+        {creator.clips.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Todavía no hay clips publicados. El primero aparecerá aquí y en el marketplace.
+          </p>
+        ) : (
+          creator.clips.map((clip) => (
+            <div
+              key={clip.id}
+              className="flex items-center gap-3 rounded-lg border border-hairline bg-white/[0.02] p-3"
+            >
+              <Cover kind={clip.cover} alt="" className="h-12 w-16 shrink-0 rounded-md" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs text-pearl">{clip.title}</p>
+                <p className="mt-0.5 text-[0.6rem] text-muted-foreground">
+                  {formatMoney(clip.priceMXN, state.currency)} · {clip.duration} ·{" "}
+                  {formatNumber(clip.sales)} ventas
+                </p>
+              </div>
+              <Badge tone={clip.mature ? "warning" : "outline"}>
+                {clip.mature ? "18+" : clip.category}
+              </Badge>
+            </div>
+          ))
+        )}
+      </div>
+    </SectionCard>
   );
 }
 
@@ -1390,6 +1522,13 @@ function AfiliadosTab({ creator }: { creator: Creator }) {
   const { state } = useApp();
   const referral = state.referrals.find((r) => r.creatorId === creator.id);
   const code = referral?.code ?? creator.affiliateCode;
+  const domain = (state.settings.domain || "xclusive.demo")
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/.*$/, "");
+  const link = `https://${domain}/creadora/${creator.slug}?ref=${code}`;
+  const clicks = referral?.clicks ?? 0;
+  const signups = referral?.signups ?? 0;
+  const conversion = clicks > 0 ? Math.round((signups / clicks) * 100) : 0;
 
   return (
     <div className="grid gap-5 lg:grid-cols-3">
@@ -1421,9 +1560,7 @@ function AfiliadosTab({ creator }: { creator: Creator }) {
               size="sm"
               onClick={async () => {
                 try {
-                  await navigator.clipboard.writeText(
-                    `https://xclusive.demo/creadora/${creator.slug}?ref=${code}`,
-                  );
+                  await navigator.clipboard.writeText(link);
                   toast.success("Enlace copiado.");
                 } catch {
                   toast.error("No se pudo copiar el enlace.");
@@ -1434,7 +1571,17 @@ function AfiliadosTab({ creator }: { creator: Creator }) {
             </Button>
           </div>
         </div>
-        <div className="mt-5 grid grid-cols-3 gap-3">
+        <div className="mt-4 flex flex-col gap-2 rounded-lg border border-hairline bg-black/25 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="break-all font-mono text-[0.62rem] text-silver">{link}</p>
+          <span className="shrink-0 text-[0.55rem] uppercase tracking-[0.16em] text-muted-foreground">
+            Enlace atribuido
+          </span>
+        </div>
+        <p className="mt-2 text-[0.62rem] leading-relaxed text-muted-foreground">
+          Cada apertura con <span className="font-mono">?ref={code}</span> se registra como clic en
+          este navegador y atribuye el registro cuando alguien crea su cuenta desde el enlace.
+        </p>
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-xl border border-hairline bg-white/[0.02] p-3 text-center">
             <p className="font-serif text-2xl text-pearl">{formatNumber(referral?.clicks ?? 0)}</p>
             <p className="mt-1 text-[0.56rem] uppercase tracking-[0.14em] text-muted-foreground">
@@ -1445,6 +1592,12 @@ function AfiliadosTab({ creator }: { creator: Creator }) {
             <p className="font-serif text-2xl text-pearl">{formatNumber(referral?.signups ?? 0)}</p>
             <p className="mt-1 text-[0.56rem] uppercase tracking-[0.14em] text-muted-foreground">
               Registros
+            </p>
+          </div>
+          <div className="rounded-xl border border-hairline bg-white/[0.02] p-3 text-center">
+            <p className="font-serif text-2xl text-pearl">{conversion}%</p>
+            <p className="mt-1 text-[0.56rem] uppercase tracking-[0.14em] text-muted-foreground">
+              Conversión
             </p>
           </div>
           <div className="rounded-xl border border-hairline bg-white/[0.02] p-3 text-center">
