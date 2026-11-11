@@ -109,7 +109,25 @@ Dos rutas válidas:
 
 Mantén la rama en estado compilable: cada push puede sincronizarse con Lovable.
 
-## 5. Verificación posterior al despliegue
+## 5. Publicar en Vercel (alternativa)
+
+Vercel no ejecuta el preset de Cloudflare, así que el build se cambia con una variable de entorno, sin tocar `vite.config.ts`:
+
+```sh
+npm ci
+NITRO_PRESET=vercel npm run build
+npx vercel deploy --prebuilt --prod
+```
+
+En PowerShell: `$env:NITRO_PRESET='vercel'; npm run build`.
+
+`vercel.json` fija el mismo comando para los despliegues automáticos desde GitHub y replica las cabeceras de `public/_headers` (`Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, caché de assets), porque Vercel no lee `_headers`. El resultado queda en `.vercel/output` (Build Output API de Nitro).
+
+Sitio publicado: https://sophisticated-elegance.vercel.app
+
+Cada push a `main` dispara un build en Vercel. La configuración de Cloudflare (`wrangler.jsonc`, `.output/server/wrangler.json`) sigue siendo la vía principal; Vercel es la demo pública mientras no haya credenciales de Cloudflare.
+
+## 6. Verificación posterior al despliegue
 
 - [ ] `/` carga el landing y el aviso de edad aparece en una sesión nueva.
 - [ ] Aceptar el aviso guarda la decisión y muestra el banner de cookies.
@@ -126,11 +144,11 @@ Mantén la rama en estado compilable: cada push puede sincronizarse con Lovable.
 - [ ] Las cabeceras de seguridad de `_headers` llegan en la respuesta del dominio (`Strict-Transport-Security`, `X-Content-Type-Options`).
 - [ ] La intro cinematográfica aparece una vez por sesión, se puede saltar con Escape y no se muestra con `prefers-reduced-motion`.
 
-## 6. Reversión
+## 7. Reversión
 
 Cloudflare conserva las versiones del worker. En **Workers → Deployments** selecciona la versión anterior y usa **Rollback**. Para retirar el sitio, elimina la ruta del dominio y el worker; no borres el repositorio ni el historial de Git.
 
-## 7. Límites conocidos del DEMO
+## 8. Límites conocidos del DEMO
 
 - Sin backend, autenticación real, recuperación de contraseña ni sesiones de servidor.
 - Sin PSP, facturación, impuestos, conciliación, retiros ni obligación de pago.
