@@ -121,7 +121,9 @@ npx vercel deploy --prebuilt --prod
 
 En PowerShell: `$env:NITRO_PRESET='vercel'; npm run build`.
 
-`vercel.json` fija el mismo comando para los despliegues automáticos desde GitHub y replica las cabeceras de `public/_headers` (`Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, caché de assets), porque Vercel no lee `_headers`. El resultado queda en `.vercel/output` (Build Output API de Nitro).
+`vercel.json` fija el mismo comando para los despliegues automáticos desde GitHub. Las cabeceras de seguridad viven en `vite.config.ts` (`nitro.routeRules`): en un build con Build Output API, Vercel ignora las `headers` de `vercel.json` y no lee `public/_headers`, así que Nitro las escribe en `.vercel/output/config.json` (`Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, caché de assets y `no-store` para `health.json`).
+
+El dominio canónico y la imagen social salen de `VITE_SITE_URL` (por defecto `https://xclusive.tamvonline.network`). En el proyecto de Vercel está definido como `https://sophisticated-elegance.vercel.app` para que `canonical`, `og:url` y `og:image` apunten al sitio publicado; al desplegar en Cloudflare, configúralo con el dominio propio. `public/sitemap.xml` y `public/robots.txt` son estáticos y conservan el dominio de producción: actualízalos cuando cambie el dominio definitivo.
 
 Sitio publicado: https://sophisticated-elegance.vercel.app
 

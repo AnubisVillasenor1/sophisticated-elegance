@@ -87,10 +87,14 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
+const SITE_URL = (
+  (import.meta.env["VITE_SITE_URL"] as string | undefined) ?? "https://xclusive.tamvonline.network"
+).replace(/\/+$/, "");
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: ({ matches }) => {
     const pathname = matches.at(-1)?.pathname ?? "/";
-    const canonical = `https://xclusive.tamvonline.network${pathname === "/" ? "/" : pathname.replace(/\/$/, "")}`;
+    const canonical = `${SITE_URL}${pathname === "/" ? "/" : pathname.replace(/\/$/, "")}`;
     return {
       meta: [
         { charSet: "utf-8" },
@@ -116,7 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { property: "og:type", content: "website" },
         {
           property: "og:image",
-          content: "https://xclusive.tamvonline.network/og.png",
+          content: `${SITE_URL}/og.png`,
         },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
@@ -127,7 +131,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:image",
-          content: "https://xclusive.tamvonline.network/og.png",
+          content: `${SITE_URL}/og.png`,
         },
       ],
       links: [
