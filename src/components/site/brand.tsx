@@ -15,9 +15,8 @@ const EMBLEM_SRCSET =
   "/brand/emblem-96.webp 96w, /brand/emblem-256.webp 256w, /brand/emblem-512.webp 512w";
 const WORDMARK_SRC = "/brand/wordmark-900.webp";
 const WORDMARK_SRCSET = "/brand/wordmark-480.webp 480w, /brand/wordmark-900.webp 900w";
-const LOCKUP_SRC = "/brand/lockup-600.webp";
-const LOCKUP_SRCSET =
-  "/brand/lockup-320.webp 320w, /brand/lockup-600.webp 600w, /brand/lockup-1000.webp 1000w";
+const LOCKUP_SRC =
+  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Emblema%20Xclusive_%20Para%C3%ADso%20Prohibido-L6GDX2EBOLVUYug1f0LhvY5U5zua5H.png";
 
 type ArtProps = {
   className?: string;
@@ -77,11 +76,10 @@ export function BrandLockup({
   return (
     <img
       src={LOCKUP_SRC}
-      srcSet={LOCKUP_SRCSET}
       sizes={sizes}
       alt={alt}
-      width={1000}
-      height={957}
+      width={1600}
+      height={984}
       loading={priority ? "eager" : "lazy"}
       decoding="async"
       fetchPriority={priority ? "high" : undefined}

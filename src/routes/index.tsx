@@ -18,7 +18,9 @@ import portrait from "@/assets/editorial_portrait.jpg";
 import { CreatorCard, LiveCard } from "@/components/lux/cards";
 import { Badge, Button, DemoBadge, SectionHeading, btn } from "@/components/lux/ui";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { BrandLockup, BrandWatermark } from "@/components/site/brand";
+import { BrandWatermark } from "@/components/site/brand";
+import { EditorialLookbook } from "@/components/site/EditorialLookbook";
+import { HeroEditorial } from "@/components/site/HeroEditorial";
 import { formatNumber } from "@/lib/format";
 import { CAPABILITIES, ECOSYSTEM_PRINCIPLES } from "@/lib/platforms";
 import { useApp } from "@/lib/store";
@@ -99,21 +101,7 @@ function Landing() {
           </div>
 
           <div className="relative lg:col-span-5">
-            <div className="relative mx-auto w-[min(90vw,460px)]">
-              <div className="absolute inset-[-16%] rounded-full bg-ember blur-2xl" />
-              <div className="absolute left-1/2 top-1/2 h-[76%] w-[76%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(244,63,94,0.22),transparent_68%)] blur-2xl" />
-              <BrandLockup
-                priority
-                sizes="(max-width: 1024px) 90vw, 460px"
-                className="relative w-full animate-float-slow drop-shadow-[0_0_70px_rgba(244,63,94,0.28)]"
-              />
-              <span className="pointer-events-none absolute inset-x-0 -top-1 text-center text-[0.5rem] uppercase tracking-[0.5em] text-silver/50">
-                MMXXVI
-              </span>
-            </div>
-            <p className="mx-auto mt-4 max-w-sm text-center text-[0.56rem] uppercase tracking-[0.28em] text-muted-foreground">
-              Obsidiana · Cereza · Perla
-            </p>
+            <HeroEditorial />
             <div className="mx-auto mt-5 grid max-w-sm grid-cols-2 gap-2">
               <div className="rounded-xl border border-hairline bg-background/60 p-3 backdrop-blur">
                 <p className="text-[0.58rem] uppercase tracking-[0.16em] text-muted-foreground">
@@ -170,6 +158,8 @@ function Landing() {
           </div>
         </div>
       </section>
+
+      <EditorialLookbook />
 
       {/* Story / proof */}
       <section className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-10 lg:py-28">
