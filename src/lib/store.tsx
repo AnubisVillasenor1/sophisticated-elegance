@@ -19,6 +19,7 @@ import {
 import { addDaysISO, demoHash, slugify } from "./format";
 import { REQUIRED_DOCS_CREATOR, REQUIRED_DOCS_FAN, LEGAL_VERSION, legalDoc } from "./legal";
 import { createSeedState } from "./seed";
+import { TIER_PRICES_MXN } from "./pricing";
 import {
   activeSubscription,
   canViewPost as canViewPostSelector,
@@ -268,7 +269,7 @@ function defaultTiers(creatorId: string): Tier[] {
       id: `${creatorId}-t1`,
       name: "Insider",
       level: 1,
-      priceMXN: 120,
+      priceMXN: TIER_PRICES_MXN[0],
       tagline: "La primera llave.",
       perks: ["Feed editorial", "Mensajes con moderación", "Avisos de salones"],
       featured: false,
@@ -277,7 +278,7 @@ function defaultTiers(creatorId: string): Tier[] {
       id: `${creatorId}-t2`,
       name: "VIP Club",
       level: 2,
-      priceMXN: 320,
+      priceMXN: TIER_PRICES_MXN[1],
       tagline: "Dentro del círculo.",
       perks: ["Todo lo de Insider", "Bóveda protegida", "Prioridad en salones", "Insignia VIP"],
       featured: true,
@@ -286,7 +287,7 @@ function defaultTiers(creatorId: string): Tier[] {
       id: `${creatorId}-t3`,
       name: "Xtrime Inner Circle",
       level: 3,
-      priceMXN: 820,
+      priceMXN: TIER_PRICES_MXN[2],
       tagline: "Donde casi nadie llega.",
       perks: ["Todo lo de VIP", "Sesión privada", "Piezas firmadas", "Línea XTRIME"],
       featured: false,
@@ -352,23 +353,33 @@ export function normalizeStoredState(parsed: unknown): AppState | null {
   merged.currency = ["MXN", "USD", "EUR"].includes(merged.currency) ? merged.currency : "MXN";
 
   // Saneamiento de creadoras: garantiza arreglos internos y campos numéricos.
+  const seedCreators = new Map(seed.creators.map((creator) => [creator.id, creator]));
   merged.creators = merged.creators
     .filter(
       (creator) => creator && typeof creator.id === "string" && typeof creator.slug === "string",
     )
-    .map((creator) => ({
-      ...creator,
-      tiers: Array.isArray(creator.tiers) ? creator.tiers : [],
-      posts: Array.isArray(creator.posts) ? creator.posts : [],
-      clips: Array.isArray(creator.clips) ? creator.clips : [],
-      rooms: Array.isArray(creator.rooms) ? creator.rooms : [],
-      offers: Array.isArray(creator.offers) ? creator.offers : [],
-      bundles: Array.isArray(creator.bundles) ? creator.bundles : [],
-      revenueShare: Math.max(0, Math.min(100, Number(creator.revenueShare) || 80)),
-      status: ["approved", "pending", "suspended"].includes(creator.status)
-        ? creator.status
-        : "pending",
-    }));
+    .map((creator) => {
+      const seedCreator = seedCreators.get(creator.id);
+      // Las tarifas de suscripción se toman siempre de la fuente vigente, no
+      // del almacenamiento: así un ajuste de precios llega a cuentas antiguas.
+      const tiers = (Array.isArray(creator.tiers) ? creator.tiers : []).map((tier) => {
+        const current = seedCreator?.tiers.find((item) => item.id === tier.id);
+        return current ? { ...tier, priceMXN: current.priceMXN } : tier;
+      });
+      return {
+        ...creator,
+        tiers,
+        posts: Array.isArray(creator.posts) ? creator.posts : [],
+        clips: Array.isArray(creator.clips) ? creator.clips : [],
+        rooms: Array.isArray(creator.rooms) ? creator.rooms : [],
+        offers: Array.isArray(creator.offers) ? creator.offers : [],
+        bundles: Array.isArray(creator.bundles) ? creator.bundles : [],
+        revenueShare: Math.max(0, Math.min(100, Number(creator.revenueShare) || 80)),
+        status: ["approved", "pending", "suspended"].includes(creator.status)
+          ? creator.status
+          : "pending",
+      };
+    });
 
   // La sesión solo puede apuntar a una cuenta existente.
   if (merged.sessionUserId && !merged.users.some((u) => u.id === merged.sessionUserId)) {

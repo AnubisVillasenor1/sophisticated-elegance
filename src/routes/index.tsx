@@ -22,6 +22,7 @@ import { BrandWatermark } from "@/components/site/brand";
 import { EditorialLookbook } from "@/components/site/EditorialLookbook";
 import { HeroEditorial } from "@/components/site/HeroEditorial";
 import { formatNumber } from "@/lib/format";
+import { BASE_TIER_PRICES_MXN, tierPriceLabel } from "@/lib/pricing";
 import { CAPABILITIES, ECOSYSTEM_PRINCIPLES } from "@/lib/platforms";
 import { useApp } from "@/lib/store";
 import { liveNow, topCreators } from "@/lib/selectors";
@@ -56,7 +57,11 @@ function Landing() {
   return (
     <SiteLayout>
       {/* Hero */}
-      <section className="grain relative flex min-h-[100svh] items-center overflow-hidden pt-10">
+      <section
+        data-tour="home-hero"
+        className="grain relative flex min-h-[100svh] items-center overflow-hidden pt-10"
+      >
+        <div className="pointer-events-none absolute inset-0 aura" />
         <div className="pointer-events-none absolute inset-0 bg-ember animate-breathe" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-veil" />
         <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:items-center lg:px-10">
@@ -248,7 +253,10 @@ function Landing() {
       ) : null}
 
       {/* Featured creators */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
+      <section
+        data-tour="home-creators"
+        className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+      >
         <SectionHeading
           eyebrow="III — El elenco"
           title={<>Diez universos. Una misma llave.</>}
@@ -267,7 +275,10 @@ function Landing() {
       </section>
 
       {/* Membership levels */}
-      <section className="relative overflow-hidden border-y border-hairline bg-gradient-to-b from-cherry/30 to-background">
+      <section
+        data-tour="home-memberships"
+        className="relative overflow-hidden border-y border-hairline bg-gradient-to-b from-cherry/30 to-background"
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.22]"
@@ -286,7 +297,7 @@ function Landing() {
               {
                 level: "I",
                 name: "Insider",
-                price: "Desde $120 MXN",
+                price: tierPriceLabel(BASE_TIER_PRICES_MXN[0]),
                 description: "La primera llave.",
                 perks: [
                   "Feed editorial",
@@ -299,7 +310,7 @@ function Landing() {
               {
                 level: "II",
                 name: "VIP Club",
-                price: "Desde $320 MXN",
+                price: tierPriceLabel(BASE_TIER_PRICES_MXN[1]),
                 description: "Dentro del círculo.",
                 perks: [
                   "Todo lo de Insider",
@@ -312,7 +323,7 @@ function Landing() {
               {
                 level: "III",
                 name: "Xtrime Inner Circle",
-                price: "Desde $820 MXN",
+                price: tierPriceLabel(BASE_TIER_PRICES_MXN[2]),
                 description: "Donde casi nadie llega.",
                 perks: [
                   "Todo lo de VIP",
@@ -389,7 +400,10 @@ function Landing() {
       </section>
 
       {/* Ecosystem */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
+      <section
+        data-tour="home-ecosystem"
+        className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+      >
         <SectionHeading
           eyebrow="V — El ecosistema"
           title={<>Todo lo que necesitas, en una sola cuenta.</>}

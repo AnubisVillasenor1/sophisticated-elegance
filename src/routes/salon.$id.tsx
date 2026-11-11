@@ -233,9 +233,10 @@ function SalonPage() {
         <div className="mt-5 grid gap-6 lg:grid-cols-12">
           {/* Stage */}
           <div className="lg:col-span-8">
-            <div className="overflow-hidden rounded-xl border border-hairline bg-card/50">
+            <div className="overflow-hidden rounded-xl border border-hairline bg-card/50 shadow-deep">
               <Cover kind={room.cover} alt="" className="relative aspect-video w-full">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/40" />
+                <div className="pointer-events-none absolute inset-0 aura opacity-70" />
                 {isLive ? (
                   <>
                     <div className="absolute left-4 top-4 flex items-center gap-2">

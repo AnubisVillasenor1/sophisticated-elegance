@@ -32,6 +32,10 @@ export function CreatorCard({ creator, compact = false }: { creator: Creator; co
 
   return (
     <article className="group relative overflow-hidden rounded-xl border border-hairline bg-card/60 transition-all duration-500 hover:-translate-y-1 hover:border-signal/30 hover:shadow-deep">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-pearl/25 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+      />
       <Link
         to="/creadora/$slug"
         params={{ slug: creator.slug }}

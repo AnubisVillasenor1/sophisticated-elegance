@@ -15,6 +15,7 @@ import { AgeGate } from "../components/site/AgeGate";
 import { BrandLockup } from "../components/site/brand";
 import { CinematicIntro } from "../components/site/CinematicIntro";
 import { CookieConsent } from "../components/site/CookieConsent";
+import { PlatformTourProvider } from "../components/site/PlatformTour";
 import { Toaster } from "../components/ui/sonner";
 import { AppProvider } from "../lib/store";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -179,11 +180,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <Outlet />
-        <AgeGate />
-        <CinematicIntro />
-        <CookieConsent />
-        <Toaster position="top-center" />
+        <PlatformTourProvider>
+          <Outlet />
+          <AgeGate />
+          <CinematicIntro />
+          <CookieConsent />
+          <Toaster position="top-center" />
+        </PlatformTourProvider>
       </AppProvider>
     </QueryClientProvider>
   );

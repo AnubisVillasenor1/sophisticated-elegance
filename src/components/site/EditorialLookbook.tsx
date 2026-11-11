@@ -3,9 +3,10 @@ import { Link } from "@tanstack/react-router";
 
 const editorials = [
   {
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-SevohqsSSJt9FL6uDNu949UFCq8RQe.png",
-    alt: "Retrato de moda en exterior con conjunto blanco y vegetación al fondo",
+    image: "/editorial/luz-de-jardin.webp",
+    width: 401,
+    height: 498,
+    alt: "Retrato editorial en exterior con vegetación al fondo",
     title: "Luz de jardín",
     note: "Naturaleza · Editorial",
     size: "sm:col-span-5 sm:row-span-2",
@@ -13,8 +14,9 @@ const editorials = [
     position: "object-[center_26%]",
   },
   {
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-F8sURc4uQhSo5kCumMzdedWGlMK8h3.png",
+    image: "/editorial/una-noche-en-marfil.webp",
+    width: 415,
+    height: 739,
     alt: "Vestido largo en tono marfil en una escena de arquitectura contemporánea",
     title: "Una noche en marfil",
     note: "Siluetas · Noche",
@@ -23,8 +25,9 @@ const editorials = [
     position: "object-[center_38%]",
   },
   {
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tbpfv7Y3oJI2XAtB1oSRPpkJhtyXOI.png",
+    image: "/editorial/hora-dorada.webp",
+    width: 500,
+    height: 773,
     alt: "Silueta de moda en negro frente a la luz cálida del atardecer",
     title: "Hora dorada",
     note: "Luz · Textura",
@@ -33,8 +36,9 @@ const editorials = [
     position: "object-[center_32%]",
   },
   {
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Dzlsn0x1rYVbWMP5KWea4DD15JPNV2.png",
+    image: "/editorial/atelier-nocturno.webp",
+    width: 500,
+    height: 726,
     alt: "Retrato nocturno en vestido negro con iluminación ámbar",
     title: "Atelier nocturno",
     note: "Retrato · Contraste",
@@ -70,7 +74,7 @@ export function EditorialLookbook() {
         </div>
 
         <div className="mt-10 grid auto-rows-[minmax(180px,1fr)] grid-cols-1 gap-3 sm:grid-cols-12 sm:auto-rows-[minmax(170px,1fr)] sm:gap-4">
-          {editorials.map((item, index) => (
+          {editorials.map((item) => (
             <Link
               key={item.title}
               to="/creadoras"
@@ -80,8 +84,8 @@ export function EditorialLookbook() {
               <img
                 src={item.image}
                 alt={item.alt}
-                width={index === 0 ? 401 : 500}
-                height={index === 0 ? 600 : 780}
+                width={item.width}
+                height={item.height}
                 loading="lazy"
                 decoding="async"
                 className={`absolute inset-0 size-full object-cover ${item.position} transition-transform duration-1000 ease-out group-hover:scale-[1.04]`}
@@ -104,8 +108,7 @@ export function EditorialLookbook() {
           ))}
         </div>
         <p className="mt-4 text-[0.62rem] leading-relaxed text-muted-foreground">
-          Selección visual de referencia. El contenido para adultos permanece deshabilitado en esta
-          demostración.
+          Selección editorial de referencia. El contenido para adultos permanece deshabilitado.
         </p>
       </div>
     </section>

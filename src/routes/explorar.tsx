@@ -117,7 +117,10 @@ function ExplorePage() {
         </section>
       ) : null}
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+      <section
+        data-tour="explore-search"
+        className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14"
+      >
         <div className="rounded-xl border border-hairline bg-card/40 p-4 sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <label className="relative flex-1">

@@ -103,6 +103,7 @@
     linear-gradient(180deg, var(--card), var(--background));
   --shadow-deep: 0 24px 70px oklch(0 0 0 / 0.45);
   --shadow-ember: 0 0 0 1px oklch(0.62 0.21 12 / 0.4), 0 18px 50px -12px oklch(0.62 0.21 12 / 0.45);
+  --shadow-lift: inset 0 1px 0 oklch(1 0 0 / 0.06), 0 30px 70px -28px oklch(0 0 0 / 0.7);
   --ease-veil: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -144,6 +145,67 @@
 }
 @utility shadow-ember {
   box-shadow: var(--shadow-ember);
+}
+@utility shadow-lift {
+  box-shadow: var(--shadow-lift);
+}
+
+/* Atmósfera mística: dos halos de luz muy tenues sobre superficies oscuras. */
+@utility aura {
+  background-image:
+    radial-gradient(52% 44% at 16% 0%, oklch(0.62 0.21 12 / 0.16), transparent 72%),
+    radial-gradient(46% 42% at 88% 8%, oklch(0.42 0.15 30 / 0.14), transparent 74%),
+    radial-gradient(70% 60% at 50% 120%, oklch(0.2 0.06 15 / 0.5), transparent 76%);
+}
+
+/* Botón principal con lacado, filo de luz y profundidad. */
+@utility btn-lux {
+  background-image: linear-gradient(
+    180deg,
+    oklch(0.74 0.19 14) 0%,
+    oklch(0.62 0.21 12) 52%,
+    oklch(0.5 0.19 12) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.26),
+    inset 0 -1px 0 oklch(0 0 0 / 0.3),
+    0 14px 38px -14px oklch(0.62 0.21 12 / 0.62);
+  &:hover {
+    filter: brightness(1.07);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.3),
+      inset 0 -1px 0 oklch(0 0 0 / 0.3),
+      0 20px 46px -14px oklch(0.62 0.21 12 / 0.7);
+  }
+  &:active {
+    filter: brightness(0.97);
+    transform: translateY(1px);
+  }
+}
+
+/* Elevación serena para tarjetas interactivas. */
+@utility lift {
+  transition:
+    transform 0.55s var(--ease-veil),
+    box-shadow 0.55s var(--ease-veil),
+    border-color 0.55s var(--ease-veil);
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+/* Regla ornamental: un hilo de plata que nace en el carmesí. */
+@utility mystic-rule {
+  height: 1px;
+  width: 100%;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    oklch(0.62 0.21 12 / 0.55) 18%,
+    oklch(0.78 0.02 355 / 0.3) 50%,
+    transparent
+  );
 }
 
 @utility brand-art {
@@ -240,10 +302,14 @@
 }
 
 @utility panel {
-  background: var(--gradient-lacquer);
+  background:
+    linear-gradient(180deg, oklch(1 0 0 / 0.055), transparent 42%),
+    linear-gradient(180deg, oklch(0.19 0.035 355), var(--background));
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
-  box-shadow: 0 18px 50px oklch(0 0 0 / 0.22);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.06),
+    0 24px 60px -20px oklch(0 0 0 / 0.55);
 }
 
 @utility panel-flat {
@@ -601,6 +667,10 @@
     opacity: 1;
     transform: none;
     filter: none;
+  }
+  .lift:hover,
+  .btn-lux:active {
+    transform: none;
   }
   .animate-breathe,
   .animate-marquee,

@@ -3,6 +3,8 @@ import selene from "@/assets/creator-selene.jpg";
 import aurora from "@/assets/creator-aurora.jpg";
 import isabella from "@/assets/creator-isabella.jpg";
 
+import { subscriptionPrice } from "./pricing";
+
 export type TierName = "Insider" | "VIP Club" | "Xtrime Inner Circle";
 export const TIER_NAMES: TierName[] = ["Insider", "VIP Club", "Xtrime Inner Circle"];
 
@@ -28,17 +30,17 @@ export type Creator = {
 const tiers = (base: number) => [
   {
     name: "Insider" as const,
-    price: base,
+    price: subscriptionPrice(base),
     perks: ["Feed privado", "Mensajes directos", "Galerías protegidas"],
   },
   {
     name: "VIP Club" as const,
-    price: base * 3,
+    price: subscriptionPrice(base * 3),
     perks: ["Todo lo de Insider", "Bóveda completa", "Salones en vivo"],
   },
   {
     name: "Xtrime Inner Circle" as const,
-    price: base * 10,
+    price: subscriptionPrice(base * 10),
     perks: ["Todo lo de VIP Club", "Eventos privados", "Sesiones uno a uno"],
   },
 ];

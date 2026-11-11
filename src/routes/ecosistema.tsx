@@ -72,7 +72,10 @@ function EcosystemPage() {
         }
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+      <section
+        data-tour="ecosystem-capabilities"
+        className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14"
+      >
         <div className="flex flex-wrap gap-1.5">
           {filters.map((item) => (
             <button

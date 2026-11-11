@@ -83,7 +83,10 @@ function ClipsPage() {
         }
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+      <section
+        data-tour="clips-search"
+        className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14"
+      >
         <div className="flex flex-col gap-3 rounded-xl border border-hairline bg-card/40 p-4 lg:flex-row lg:items-center">
           <label className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

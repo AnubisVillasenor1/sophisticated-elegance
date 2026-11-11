@@ -7,6 +7,7 @@ import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Avatar, Badge, btn } from "@/components/lux/ui";
 import { Logo, BrandWatermark } from "./brand";
+import { TourTrigger } from "./PlatformTour";
 
 const NAV = [
   { to: "/explorar", label: "Explorar" },
@@ -77,6 +78,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+          <TourTrigger compact className="hidden sm:inline-flex" />
           <Link
             to="/explorar"
             className="hidden h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted-foreground transition-colors hover:text-pearl sm:inline-flex"
@@ -175,6 +177,7 @@ export function SiteHeader() {
                 <span className="text-silver/50">→</span>
               </Link>
             ))}
+            <TourTrigger className="flex items-center justify-between rounded-lg px-3 py-3 text-sm text-muted-foreground" />
             {user ? (
               <>
                 <Link

@@ -81,7 +81,10 @@ function SalonesPage() {
         }
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+      <section
+        data-tour="salones-grid"
+        className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10 lg:py-14"
+      >
         {!liveEnabled ? (
           <div className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-4 text-xs leading-relaxed text-muted-foreground">
             <span className="font-medium text-warning">Transmisión en vivo pausada.</span> La

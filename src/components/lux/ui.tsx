@@ -17,8 +17,7 @@ type Variant = "primary" | "secondary" | "ghost" | "outline" | "danger" | "subtl
 type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
-  primary:
-    "bg-signal text-primary-foreground shadow-ember hover:bg-candy active:translate-y-px disabled:opacity-50",
+  primary: "btn-lux text-primary-foreground disabled:opacity-50",
   secondary:
     "border border-hairline bg-card/70 text-pearl hover:border-silver/30 hover:bg-card active:translate-y-px disabled:opacity-50",
   ghost: "text-muted-foreground hover:bg-white/5 hover:text-pearl disabled:opacity-50",
@@ -142,12 +141,28 @@ export function SectionHeading({
       )}
     >
       <div className={cn("max-w-2xl", align === "center" && "mx-auto")}>
-        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-        <h2 className="mt-3 font-serif text-3xl leading-[1.05] text-pearl sm:text-4xl lg:text-5xl">
+        {eyebrow ? (
+          <p
+            className={cn(
+              "eyebrow flex items-center gap-3",
+              align === "center" && "justify-center",
+            )}
+          >
+            <span aria-hidden className="h-px w-8 bg-gradient-to-r from-signal/80 to-transparent" />
+            {eyebrow}
+            {align === "center" ? (
+              <span
+                aria-hidden
+                className="h-px w-8 rotate-180 bg-gradient-to-r from-signal/80 to-transparent"
+              />
+            ) : null}
+          </p>
+        ) : null}
+        <h2 className="mt-4 text-balance font-serif text-3xl leading-[1.04] tracking-[-0.01em] text-pearl sm:text-4xl lg:text-5xl">
           {title}
         </h2>
         {description ? (
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+          <p className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
             {description}
           </p>
         ) : null}

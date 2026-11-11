@@ -119,13 +119,15 @@ function CreatorProfilePage() {
   return (
     <SiteLayout>
       {/* Cover */}
-      <section className="relative">
+      <section className="relative border-b border-hairline">
         <Cover
           kind={creator.cover}
           alt={`Portada de ${creator.name}`}
           className="h-64 w-full sm:h-80 lg:h-96"
         >
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          <div className="absolute inset-0 aura opacity-60" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-signal/40 to-transparent" />
           <div className="absolute left-4 top-4 flex flex-wrap gap-2 sm:left-6 lg:left-10">
             <Link to="/explorar" className={cn(btn("secondary", "sm"), "backdrop-blur")}>
               <ArrowLeft className="h-3.5 w-3.5" /> Explorar
@@ -149,7 +151,7 @@ function CreatorProfilePage() {
               />
               <div className="pb-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="font-serif text-4xl leading-none text-pearl sm:text-5xl">
+                  <h1 className="font-serif text-4xl leading-none tracking-[-0.02em] text-pearl sm:text-5xl">
                     {creator.name}
                   </h1>
                   {creator.verified ? <VerifiedBadge /> : null}

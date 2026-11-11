@@ -131,7 +131,7 @@ function FanVault() {
         </Link>
       }
     >
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div data-tour="boveda-summary" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Piezas"
           value={formatNumber(content.length)}

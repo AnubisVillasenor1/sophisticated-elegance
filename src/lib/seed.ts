@@ -1,5 +1,6 @@
 import { addDaysISO, demoHash } from "./format";
 import { LEGAL_VERSION } from "./legal";
+import { subscriptionPrice } from "./pricing";
 import type {
   AppState,
   Application,
@@ -30,12 +31,18 @@ function day(offset: number, hour = 20): string {
 }
 
 function makeTiers(creatorId: string, prices: [number, number, number], niche: string): Tier[] {
+  const [insiderPrice, vipPrice, innerCirclePrice] = prices.map(subscriptionPrice) as [
+    number,
+    number,
+    number,
+  ];
+
   return [
     {
       id: `${creatorId}-t1`,
       name: "Insider",
       level: 1,
-      priceMXN: prices[0],
+      priceMXN: insiderPrice,
       tagline: "La primera llave.",
       perks: [
         `Feed editorial de ${niche}`,
@@ -48,7 +55,7 @@ function makeTiers(creatorId: string, prices: [number, number, number], niche: s
       id: `${creatorId}-t2`,
       name: "VIP Club",
       level: 2,
-      priceMXN: prices[1],
+      priceMXN: vipPrice,
       tagline: "Dentro del círculo.",
       perks: [
         `Todo lo de Insider`,
@@ -62,7 +69,7 @@ function makeTiers(creatorId: string, prices: [number, number, number], niche: s
       id: `${creatorId}-t3`,
       name: "Xtrime Inner Circle",
       level: 3,
-      priceMXN: prices[2],
+      priceMXN: innerCirclePrice,
       tagline: "Donde casi nadie llega.",
       perks: [
         "Todo lo de VIP Club",

@@ -5,6 +5,7 @@ import { LEGAL_STATUS } from "@/lib/legal";
 import { useApp } from "@/lib/store";
 import { Badge, DemoBadge } from "@/components/lux/ui";
 import { BrandLockup, BrandWatermark } from "./brand";
+import { TourTrigger } from "./PlatformTour";
 
 const columns = [
   {
@@ -127,6 +128,9 @@ export function SiteFooter() {
                 <Link to="/ayuda" className="inline-flex items-center gap-2 hover:text-pearl">
                   <ArrowUpRight className="h-3.5 w-3.5" /> Centro de ayuda
                 </Link>
+              </li>
+              <li>
+                <TourTrigger />
               </li>
             </ul>
           </div>

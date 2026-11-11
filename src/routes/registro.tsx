@@ -147,7 +147,7 @@ function RegisterPage() {
         </div>
 
         <div className="lg:col-span-7">
-          <form onSubmit={submit} className="panel p-5 sm:p-7">
+          <form data-tour="signup-form" onSubmit={submit} className="panel p-5 sm:p-7">
             <div className="flex rounded-full border border-hairline bg-black/20 p-1">
               {(
                 [

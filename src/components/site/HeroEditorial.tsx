@@ -1,7 +1,6 @@
 import { ArrowDown } from "lucide-react";
 
-const heroImage =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-1vkmjqqcebVaQWZvZCCAA5I1Gg5YZx.png";
+const heroImage = "/editorial/hero.webp";
 
 export function HeroEditorial() {
   return (
@@ -10,9 +9,9 @@ export function HeroEditorial() {
       <div className="relative overflow-hidden rounded-t-[48%] rounded-b-xl border border-pearl/15 bg-card shadow-deep">
         <img
           src={heroImage}
-          alt="Retrato de moda editorial con top negro y denim, en un pasillo bañado de luz natural"
+          alt="Retrato editorial en un pasillo bañado de luz natural"
           width={719}
-          height={1600}
+          height={1280}
           fetchPriority="high"
           decoding="async"
           className="aspect-[4/5] w-full object-cover object-[center_28%] transition-transform duration-1000 group-hover:scale-[1.025]"
