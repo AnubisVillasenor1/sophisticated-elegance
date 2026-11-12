@@ -1,9 +1,10 @@
 {
   "status": "ok",
   "service": "xclusive",
-  "mode": "demo",
+  "auth": "supabase",
+  "mode": "live",
   "legalVersion": "2026.1",
   "adultContent": "disabled",
   "payments": "simulated",
-  "note": "Modo DEMO: sin cobros, retiros ni saldos reales. El contenido adulto permanece deshabilitado hasta completar verificación de edad certificada, consentimiento documentado, revisión legal y aprobación del PSP."
+  "note": "Identidad y permisos se verifican en el servidor con Supabase Auth. Comercio, pagos, retiros y verificación de edad certificada siguen siendo DEMO o dependen de terceros."
 }
