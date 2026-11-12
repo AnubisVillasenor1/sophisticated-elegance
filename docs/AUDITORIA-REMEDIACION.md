@@ -89,6 +89,10 @@ Archivo: `src/lib/auth/auth.test.ts`.
 - `POST /auth/v1/admin/users` con la clave de servicio configurada: **401**. La
   creación de una cuenta de prueba y su borrado no pudieron completarse; se
   documenta como bloqueo en la sección 5 en lugar de declararlo superado.
+- Login LIVE probado en navegador real sobre producción: una contraseña
+  incorrecta devuelve **400** de Supabase y la interfaz muestra “Correo o
+  contraseña incorrectos.”. La cuenta DEMO `fan@xclusive.demo` / `demo1234`
+  **falla en LIVE**, lo que confirma que las credenciales demo no autentican.
 - Producción LIVE: `/`, `/entrar`, `/registro`, `/explorar`, `/cuenta` y
   `/health.json` responden **200**. `/entrar` no contiene cuentas ni contraseñas
   DEMO.
