@@ -47,9 +47,10 @@ import {
 } from "@/lib/legal";
 import { fanPurchases, fanSubscriptions, getCreator, userNotifications } from "@/lib/selectors";
 import { DEMO_ACCOUNTS, demoMode } from "@/lib/auth/demo-accounts";
+import { listMyOrders, type MyOrder } from "@/lib/payments/payment.functions";
 import { useSession } from "@/lib/auth/SessionProvider";
 import { hasAcceptedCurrent, useApp } from "@/lib/store";
-import type { Currency, DataRequest } from "@/lib/types";
+import type { Currency, DataRequest, Purchase } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/cuenta")({
@@ -501,7 +502,47 @@ function ComprasTab() {
     a.createdAt < b.createdAt ? 1 : -1,
   );
 
-  if (purchases.length === 0) {
+  return <FanPurchasesView purchases={purchases} />;
+}
+
+/**
+ * Historial de compras del espectador.
+ *
+ * En LIVE se leen los pedidos del servidor (`xclusive_orders`), que son la
+ * fuente de verdad de lo cobrado. El historial local solo existe en DEMO.
+ */
+function FanPurchasesView({ purchases }: { purchases: Purchase[] }) {
+  const { state } = useApp();
+  const [orders, setOrders] = useState<MyOrder[]>([]);
+  const [loading, setLoading] = useState(!demoMode);
+
+  useEffect(() => {
+    if (demoMode) return;
+    let alive = true;
+    listMyOrders()
+      .then((rows) => {
+        if (alive) setOrders(rows);
+      })
+      .catch(() => {
+        if (alive) setOrders([]);
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <SectionCard title="Historial de compras" description="Consultando el servidor…">
+        <p className="text-xs text-muted-foreground">Un momento.</p>
+      </SectionCard>
+    );
+  }
+
+  if (purchases.length === 0 && orders.length === 0) {
     return (
       <EmptyState
         icon={<Receipt className="h-6 w-6" />}
@@ -517,35 +558,84 @@ function ComprasTab() {
   }
 
   return (
-    <SectionCard title="Historial de compras" description="Todos los importes son simulados.">
-      <div className="space-y-2">
-        {purchases.map((purchase) => {
-          const creator = getCreator(state, purchase.creatorId);
-          return (
-            <div
-              key={purchase.id}
-              className="flex flex-col gap-2 rounded-lg border border-hairline bg-white/[0.02] p-3 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-xs text-pearl">{purchase.label}</p>
-                <p className="mt-0.5 text-[0.62rem] text-muted-foreground">
-                  {creator?.name ?? "Creadora"} · {formatDateTime(purchase.createdAt)} ·{" "}
-                  {purchase.kind}
-                </p>
+    <div className="space-y-4">
+      {orders.length > 0 ? (
+        <SectionCard
+          title="Pedidos"
+          description="Registrados en el servidor y conciliados con el libro mayor."
+        >
+          <div className="space-y-2">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className="flex flex-col gap-2 rounded-lg border border-hairline bg-white/[0.02] p-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-xs text-pearl">{order.label}</p>
+                  <p className="mt-0.5 text-[0.62rem] text-muted-foreground">
+                    {formatDateTime(order.createdAt)} · {order.id.slice(0, 8)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    tone={
+                      order.status === "paid"
+                        ? "success"
+                        : order.status === "requires_payment"
+                          ? "warning"
+                          : "outline"
+                    }
+                  >
+                    {order.status === "paid"
+                      ? "Pagado"
+                      : order.status === "requires_payment"
+                        ? "Pendiente"
+                        : order.status === "refunded"
+                          ? "Reembolsado"
+                          : "Cancelado"}
+                  </Badge>
+                  <p className="text-xs text-silver">
+                    {formatMoney(order.amountMXN, state.currency)}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge tone={purchase.status === "delivered" ? "success" : "warning"}>
-                  {purchase.status === "delivered" ? "Entregado" : "En curso"}
-                </Badge>
-                <p className="text-xs text-silver">
-                  {formatMoney(purchase.amountMXN, state.currency)}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </SectionCard>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
+
+      {purchases.length > 0 ? (
+        <SectionCard title="Historial local" description="Movimientos DEMO de este dispositivo.">
+          <div className="space-y-2">
+            {purchases.map((purchase) => {
+              const creator = getCreator(state, purchase.creatorId);
+              return (
+                <div
+                  key={purchase.id}
+                  className="flex flex-col gap-2 rounded-lg border border-hairline bg-white/[0.02] p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-xs text-pearl">{purchase.label}</p>
+                    <p className="mt-0.5 text-[0.62rem] text-muted-foreground">
+                      {creator?.name ?? "Creadora"} · {formatDateTime(purchase.createdAt)} ·{" "}
+                      {purchase.kind}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge tone={purchase.status === "delivered" ? "success" : "warning"}>
+                      {purchase.status === "delivered" ? "Entregado" : "En curso"}
+                    </Badge>
+                    <p className="text-xs text-silver">
+                      {formatMoney(purchase.amountMXN, state.currency)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </SectionCard>
+      ) : null}
+    </div>
   );
 }
 

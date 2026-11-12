@@ -7,10 +7,16 @@
     "password-recovery",
     "totp-mfa",
     "server-signed-legal-receipts",
-    "bundled-media"
+    "persisted-legal-receipts",
+    "bundled-media",
+    "server-order-pricing",
+    "double-entry-ledger",
+    "signed-webhook-fulfilment",
+    "persistent-audit-log",
+    "private-vault-bucket"
   ],
   "legalVersion": "2026.11-demo",
   "adultContent": "disabled",
-  "payments": "simulated",
-  "note": "Identidad, recuperacion, segundo factor y evidencia legal se verifican en el servidor con Supabase Auth. Comercio, pagos, retiros y verificacion de edad certificada siguen siendo DEMO o dependen de terceros."
+  "payments": "fail-closed",
+  "note": "Identidad, recuperacion, segundo factor, evidencia legal persistida, pedidos con precio de servidor, libro de partida doble y auditoria persistente funcionan en el servidor. Los cobros se rechazan de forma explicita hasta configurar el PSP; KYC y verificacion de edad certificada dependen de terceros."
 }

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Check, Info, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertTriangle, Check, Info, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { creatorNetMXN, platformFeeMXN, pspEstimateMXN, validateTipAmount } from "@/lib/commerce";
+import { demoMode } from "@/lib/auth/demo-accounts";
 import { formatMoney } from "@/lib/format";
+import { startCheckout } from "@/lib/payments/payment.functions";
 import { useApp } from "@/lib/store";
 import type { Creator, PurchaseKind, ReportTarget, Tier } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -84,14 +86,71 @@ export type CheckoutState = {
 export function CheckoutDialog({ state, onClose }: { state: CheckoutState; onClose: () => void }) {
   const { user, unlock } = useApp();
   const [accepted, setAccepted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [idempotencyKey] = useState(() => {
+    const random =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2);
+    return `co_${random}`;
+  });
 
   const close = () => {
     setAccepted(false);
+    setError(null);
     onClose();
   };
 
   if (!state) return null;
   const { creator, kind, itemId, label, amountMXN, description } = state;
+
+  const confirm = async () => {
+    if (!user) {
+      toast.error("Inicia sesión para continuar.");
+      return;
+    }
+
+    // Un acceso gratuito no pasa por la pasarela.
+    if (amountMXN <= 0) {
+      const result = unlock(kind, creator.id, itemId, label, amountMXN);
+      toast(result.message);
+      if (result.ok) close();
+      return;
+    }
+
+    if (demoMode) {
+      const result = unlock(kind, creator.id, itemId, label, amountMXN);
+      toast(result.message);
+      if (result.ok) close();
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await startCheckout({
+        data: {
+          kind,
+          creatorId: creator.id,
+          itemId,
+          idempotencyKey,
+          ...(kind === "tip" ? { amountMXN } : {}),
+        },
+      });
+      if (!result.ok) {
+        setError(result.message);
+        setBusy(false);
+        return;
+      }
+      // El cobro ocurre en el proveedor; el acceso se concede cuando llega el
+      // webhook firmado, no al volver a esta página.
+      window.location.assign(result.url);
+    } catch {
+      setError("No se pudo abrir la pasarela de pago. Inténtalo de nuevo.");
+      setBusy(false);
+    }
+  };
 
   return (
     <Modal
@@ -104,20 +163,13 @@ export function CheckoutDialog({ state, onClose }: { state: CheckoutState; onClo
           <Button variant="secondary" onClick={close}>
             Cancelar
           </Button>
-          <Button
-            disabled={!accepted}
-            onClick={() => {
-              if (!user) {
-                toast.error("Inicia sesión para continuar.");
-                return;
-              }
-              const result = unlock(kind, creator.id, itemId, label, amountMXN);
-              toast(result.message);
-              if (result.ok) close();
-            }}
-          >
-            <Check className="h-4 w-4" />{" "}
-            {kind === "custom" ? "Enviar solicitud" : `Confirmar ${formatMoney(amountMXN)}`}
+          <Button disabled={!accepted || busy} onClick={() => void confirm()}>
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}{" "}
+            {kind === "custom"
+              ? "Enviar solicitud"
+              : busy
+                ? "Abriendo pasarela…"
+                : `Confirmar ${formatMoney(amountMXN)}`}
           </Button>
         </div>
       }
@@ -135,15 +187,37 @@ export function CheckoutDialog({ state, onClose }: { state: CheckoutState; onClo
           </div>
         )}
 
-        <div className="rounded-xl border border-warning/25 bg-warning/5 p-4">
-          <p className="flex items-center gap-2 text-xs font-medium text-warning">
-            <AlertTriangle className="h-3.5 w-3.5" /> Modo DEMO
+        {demoMode ? (
+          <div className="rounded-xl border border-warning/25 bg-warning/5 p-4">
+            <p className="flex items-center gap-2 text-xs font-medium text-warning">
+              <AlertTriangle className="h-3.5 w-3.5" /> Modo DEMO
+            </p>
+            <p className="mt-1.5 text-[0.7rem] leading-relaxed text-muted-foreground">
+              Esta operación se registra en el libro de demostración. No se realiza cargo real, no
+              genera saldo retirable y no crea obligación de pago.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-success/25 bg-success/5 p-4">
+            <p className="flex items-center gap-2 text-xs font-medium text-success">
+              <ShieldCheck className="h-3.5 w-3.5" /> Pago protegido
+            </p>
+            <p className="mt-1.5 text-[0.7rem] leading-relaxed text-muted-foreground">
+              El cobro se procesa en la pasarela del proveedor. Tu acceso se activa en cuanto el
+              pago queda confirmado, no al volver a esta página. El importe y la comisión los fija
+              el servidor.
+            </p>
+          </div>
+        )}
+
+        {error ? (
+          <p
+            role="alert"
+            className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs leading-relaxed text-destructive"
+          >
+            {error}
           </p>
-          <p className="mt-1.5 text-[0.7rem] leading-relaxed text-muted-foreground">
-            Esta operación se registra en el libro de demostración. No se realiza cargo real, no
-            genera saldo retirable y no crea obligación de pago.
-          </p>
-        </div>
+        ) : null}
 
         <label className="flex items-start gap-3 rounded-xl border border-hairline bg-white/[0.02] p-4">
           <input

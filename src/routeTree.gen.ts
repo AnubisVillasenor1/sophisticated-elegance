@@ -31,6 +31,7 @@ import { Route as CreadoraSlugRouteImport } from './routes/creadora.$slug'
 import { Route as LegalIndexRouteImport } from './routes/legal.index'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as SalonIdRouteImport } from './routes/salon.$id'
+import { Route as ApiPaymentsWebhookRouteImport } from './routes/api/payments/webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -142,6 +143,11 @@ const SalonIdRoute = SalonIdRouteImport.update({
   path: '/salon/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPaymentsWebhookRoute = ApiPaymentsWebhookRouteImport.update({
+  id: '/api/payments/webhook',
+  path: '/api/payments/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/legal/$doc': typeof LegalDocRoute
   '/salon/$id': typeof SalonIdRoute
   '/legal/': typeof LegalIndexRoute
+  '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByTo {
   '/legal/$doc': typeof LegalDocRoute
   '/salon/$id': typeof SalonIdRoute
   '/legal': typeof LegalIndexRoute
+  '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -215,6 +223,7 @@ export interface FileRoutesById {
   '/legal/$doc': typeof LegalDocRoute
   '/salon/$id': typeof SalonIdRoute
   '/legal/': typeof LegalIndexRoute
+  '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/legal/$doc'
     | '/salon/$id'
     | '/legal/'
+    | '/api/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/legal/$doc'
     | '/salon/$id'
     | '/legal'
+    | '/api/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/legal/$doc'
     | '/salon/$id'
     | '/legal/'
+    | '/api/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -314,6 +326,7 @@ export interface RootRouteChildren {
   LegalDocRoute: typeof LegalDocRoute
   SalonIdRoute: typeof SalonIdRoute
   LegalIndexRoute: typeof LegalIndexRoute
+  ApiPaymentsWebhookRoute: typeof ApiPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -472,6 +485,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SalonIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/payments/webhook': {
+      id: '/api/payments/webhook'
+      path: '/api/payments/webhook'
+      fullPath: '/api/payments/webhook'
+      preLoaderRoute: typeof ApiPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -498,6 +518,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalDocRoute: LegalDocRoute,
   SalonIdRoute: SalonIdRoute,
   LegalIndexRoute: LegalIndexRoute,
+  ApiPaymentsWebhookRoute: ApiPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -210,6 +210,8 @@ export type LegalReceipt = {
   receiptId: string;
   acceptedAt: string;
   hash: string;
+  /** Documentos persistidos en `xclusive_legal_acceptances`. */
+  persisted?: number;
 };
 
 /**
@@ -254,14 +256,59 @@ export const recordLegalAcceptance = createServerFn({ method: "POST" })
       .digest("hex");
     const receiptId = randomUUID();
 
+    // Persistencia consultable del recibo. Si la tabla no existe o la
+    // credencial falla, el evento firmado sigue en el registro de auditoría:
+    // no se inventa una aceptación que no ocurrió.
+    let persisted = 0;
+    if (process.env["SUPABASE_URL"] && process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const client = supabaseAdmin as unknown as {
+          from: (table: "xclusive_legal_acceptances") => {
+            upsert: (
+              rows: Record<string, unknown>[],
+              options: { onConflict: string },
+            ) => Promise<{ error: { code?: string } | null }>;
+          };
+        };
+        const rows = docs.map((docId) => ({
+          user_id: context.userId,
+          doc_id: docId,
+          doc_version: data.version,
+          channel: "web",
+          receipt_id: `${receiptId}:${docId}`,
+          hash,
+          accepted_at: acceptedAt,
+        }));
+        const { error } = await client
+          .from("xclusive_legal_acceptances")
+          .upsert(rows, { onConflict: "user_id,doc_id,doc_version" });
+        if (!error) persisted = rows.length;
+        else
+          auditEvent({
+            action: "legal.persist",
+            actorId: context.userId,
+            outcome: "error",
+            detail: error.code ?? "upsert_failed",
+          });
+      } catch {
+        auditEvent({
+          action: "legal.persist",
+          actorId: context.userId,
+          outcome: "error",
+          detail: "service_unavailable",
+        });
+      }
+    }
+
     auditEvent({
       action: "legal.accept",
       actorId: context.userId,
       outcome: "ok",
-      detail: JSON.stringify({ receiptId, version: data.version, hash, docs }),
+      detail: JSON.stringify({ receiptId, version: data.version, hash, docs, persisted }),
     });
 
-    return { ok: true, receiptId, acceptedAt, hash };
+    return { ok: true, receiptId, acceptedAt, hash, persisted };
   });
 
 export type AdminOverview = {

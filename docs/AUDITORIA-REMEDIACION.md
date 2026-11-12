@@ -105,22 +105,23 @@ Archivo: `src/lib/auth/auth.test.ts`.
 | ----------------------------- | ------: | -----: | -----: | -------------------------------------------------------------------------------------------------------------------------------- |
 | Interfaz y experiencia        |      10 |      9 |      9 | Sin cambios; se preservó el acabado y el tutorial                                                                                |
 | CI y compilación              |      10 |     10 |     10 | `tsc`, pruebas, lint y build verificados                                                                                         |
-| Backend y persistencia        |      15 |      0 |      2 | Perfil y membresías ya se leen/escriben en Supabase con RLS; el comercio sigue local                                             |
-| Autenticación y RBAC          |      15 |      0 |      8 | Auth real, sesión de servidor, rol de servidor, rate limit y auditoría; faltan MFA, recuperación guiada y revocación desde la UI |
-| Pagos y contabilidad          |      15 |      0 |      0 | Sin PSP, webhooks, ledger ni conciliación                                                                                        |
+| Backend y persistencia        |      15 |      2 |      8 | Tablas propias para pedidos, libro mayor, accesos, recibos legales, auditoría y webhooks, con RLS                                 |
+| Autenticación y RBAC          |      15 |      8 |      9 | Auth real, MFA TOTP, recuperación, rol de servidor y rate limit; falta exigir AAL2 por política                                  |
+| Pagos y contabilidad          |      15 |      0 |      7 | Motor de cobro con precio de servidor, partida doble, webhook firmado e idempotencia; **sin PSP configurado** ni retiros       |
 | KYC, edad y consentimiento    |      10 |      2 |      2 | Sigue siendo declarativo; la aceptación se registra, no se certifica                                                             |
-| Almacenamiento y comunicación |       5 |      0 |      0 | Bóveda y mensajería siguen siendo demo                                                                                           |
-| Seguridad y observabilidad    |      10 |      2 |      4 | Auditoría estructurada, rate limit y secretos saneados; sin retención inmutable ni telemetría distribuida                        |
-| Despliegue y operaciones      |       5 |      2 |      3 | Destino canónico, modos de build y entornos documentados; faltan migraciones, smoke tests y rollback                             |
-| Cumplimiento legal y fiscal   |       5 |      0 |      1 | Aceptación versionada enviada al servidor; falta tabla consultable y revisión legal                                              |
-| **Total**                     | **100** | **25** | **39** |                                                                                                                                  |
+| Almacenamiento y comunicación |       5 |      0 |      1 | Bucket privado `vault` creado; faltan carga, URL firmada y revocación en la UI                                                   |
+| Seguridad y observabilidad    |      10 |      4 |      7 | Auditoría persistente con retención propia, RLS sin autoconcesión y cabeceras; falta telemetría externa                          |
+| Despliegue y operaciones      |       5 |      3 |      4 | `preflight` y `apply-db` reproducibles, build verificado; falta rollback automatizado                                             |
+| Cumplimiento legal y fiscal   |       5 |      1 |      4 | Recibos firmados y persistidos por documento; falta revisión legal y fiscal formal                                                |
+| **Total**                     | **100** | **25** | **61** |                                                                                                                                  |
 
 ### Lectura correcta del número
 
-39/100 significa que el núcleo de identidad dejó de depender del navegador. **No
-significa que la plataforma pueda cobrar o custodiar contenido privado.** Los
-bloqueadores restantes son de dinero, verificación de terceros y persistencia
-transaccional.
+61/100 significa que la plataforma ya tiene identidad real, evidencia legal
+persistida, pedidos con precio de servidor, libro mayor de partida doble y
+auditoría con retención propia. **No significa que pueda cobrar todavía**: falta
+configurar el PSP, y sin KYC no puede operar contenido adulto ni retiros. Los
+bloqueadores restantes son de dinero, verificación de terceros y operación.
 
 ---
 
@@ -330,3 +331,58 @@ python asset_usage.py   # unused: ['modelo5.jpg'] (bloqueo documentado)
 
 La matriz global no cambia de forma material: el catálogo visual pasa de 9 a 10
 sobre 10 y el resto de dominios sigue igual. **46/100**, no 100.
+
+---
+
+## 11. Iteracion 4: capa de datos real y motor de cobro
+
+Fecha de corte: 11 de noviembre de 2026 (cuarta pasada).
+
+Se creo el esquema propio de Xclusive en la base de datos compartida, con prefijo
+xclusive_ para no colisionar con el otro producto que vive en el mismo proyecto.
+Ninguna tabla existente se modifico.
+
+### Base de datos
+
+| Tabla | Contenido |
+| --- | --- |
+| xclusive_orders | Pedido con importe, comision, estado e idempotencia |
+| xclusive_ledger_entries | Libro mayor de partida doble |
+| xclusive_entitlements | Acceso concedido solo tras pago verificado |
+| xclusive_legal_acceptances | Recibo firmado por el servidor, consultable |
+| xclusive_audit_log | Auditoria con retencion propia |
+| xclusive_webhook_events | Idempotencia por evento del proveedor |
+
+RLS activo en las seis. El navegador solo lee sus propias filas; no hay politica
+de insercion ni de actualizacion, de modo que una sesion comprometida no puede
+fabricar un pedido pagado ni autoconcederse acceso. Se creo ademas el bucket
+privado vault.
+
+### Cobro
+
+- El precio se resuelve en el servidor desde el catalogo; el navegador solo elige
+  que quiere comprar.
+- El reparto se calcula en pesos enteros y el asiento cuadra al peso por pedido.
+- El webhook verifica la firma del proveedor antes de leer el cuerpo y es
+  idempotente por identificador de evento.
+- El acceso se concede en el webhook, nunca al volver del checkout.
+- Sin PAYMENT_PROVIDER, STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET, el checkout
+  responde con fallo cerrado y no crea pedido.
+
+### Operacion
+
+- scripts/preflight.mjs comprueba entorno, Auth, tablas, bucket y pagos.
+- scripts/apply-db.mjs aplica el SQL de forma idempotente.
+- db/README.md documenta el esquema y sus limites.
+
+### Pruebas
+
+``sh
+npx tsc --noEmit        # 0 errores
+npm test                # 9 archivos, 56 pruebas aprobadas
+npm run lint            # 0 errores, 16 avisos preexistentes
+node scripts/preflight.mjs
+``n
+La matriz sube a **61/100**. Sigue sin poder cobrar hasta configurar el PSP, y
+sin KYC no puede operar contenido adulto ni retiros. Declarar 100% seria falso.
+
