@@ -517,3 +517,47 @@ export const requestPayout = createServerFn({ method: "POST" })
       return { ok: false, message: "No se pudo registrar la solicitud." };
     }
   });
+
+export type MyPayout = {
+  id: string;
+  creatorSlug: string;
+  amountMXN: number;
+  status: string;
+  blockedReason: string | null;
+  createdAt: string;
+};
+
+/** Historial de retiros solicitados por la creadora autenticada. */
+export const listMyPayouts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MyPayout[]> => {
+    if (!hasServiceRole()) return [];
+    try {
+      const db = await adminClient();
+      const { data } = await db
+        .from("xclusive_payout_requests")
+        .select("id, creator_slug, amount_mxn, status, blocked_reason, created_at")
+        .eq("user_id", context.userId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return (
+        (data ?? []) as {
+          id: string;
+          creator_slug: string;
+          amount_mxn: number;
+          status: string;
+          blocked_reason: string | null;
+          created_at: string;
+        }[]
+      ).map((row) => ({
+        id: row.id,
+        creatorSlug: row.creator_slug,
+        amountMXN: row.amount_mxn,
+        status: row.status,
+        blockedReason: row.blocked_reason,
+        createdAt: row.created_at,
+      }));
+    } catch {
+      return [];
+    }
+  });

@@ -31,7 +31,7 @@ misma matriz de la auditoría, actualizada solo donde existe evidencia verificab
 | #   | Hallazgo P0          | Antes                                                             | Después                                                                                                                               | Evidencia                                                                              |
 | --- | -------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | 1   | Login y registro     | `store.tsx` comparaba `demoHash` contra usuarios del estado local | LIVE usa `supabase.auth.signInWithPassword` / `signUp`; DEMO solo existe si el build lo declara                                       | `src/lib/auth/SessionProvider.tsx`, `src/routes/entrar.tsx`, `src/routes/registro.tsx` |
-| 2   | Sesión               | `sessionUserId` persistido en `localStorage`                      | En LIVE la sesión es de Supabase y `sessionUserId` se fuerza a `null` al hidratar y al persistir                                      | `src/lib/store.tsx` (hidratación y persistencia)                                       |
+| 2   | Sesión               | `sessionUserId` persistido en `localStorage`                      | En LIVE la sesión es de Supabase y `sessionUserId` se fuerza a `ull` al hidratar y al persistir                                      | `src/lib/store.tsx` (hidratación y persistencia)                                       |
 | 3   | Identidad mostrada   | `user` salía del estado local                                     | En LIVE `user` se proyecta desde el `viewer` verificado por el servidor                                                               | `userFromViewer` en `src/lib/store.tsx`                                                |
 | 4   | Roles                | `role` se leía y modificaba en el cliente                         | El servidor resuelve `fan` / `creator` / `admin` con allowlist y `app_metadata`; `user_metadata` nunca concede rol                    | `src/lib/auth/roles.ts`, `roles.server.ts`, `auth.functions.ts`                        |
 | 5   | Credenciales DEMO    | Visibles en la interfaz y en el bundle                            | Solo se renderizan si `VITE_DEMO_MODE=true`; el build LIVE las elimina. El texto plano de la contraseña demo ya no está en la semilla | `src/lib/auth/demo-accounts.ts`, `src/lib/seed.ts`, `src/routes/index.tsx`             |
@@ -309,7 +309,7 @@ apuntaban a `public.blob.vercel-storage.com` ahora se importan desde
 Los retratos se usan en la portada de la creadora, en las tarjetas, en los
 avatares de salón, estudio y administración, y en el hero de su perfil. Un
 estado guardado en `localStorage` de una versión anterior recibe las imágenes
-nuevas al hidratar (`normalizeStoredState`).
+nuevas al hidratar (`ormalizeStoredState`).
 
 ### Único archivo no publicado
 
@@ -377,12 +377,12 @@ privado vault.
 
 ### Pruebas
 
-``sh
+```sh
 npx tsc --noEmit        # 0 errores
 npm test                # 9 archivos, 56 pruebas aprobadas
 npm run lint            # 0 errores, 16 avisos preexistentes
 node scripts/preflight.mjs
-``n
+```
 La matriz sube a **61/100**. Sigue sin poder cobrar hasta configurar el PSP, y
 sin KYC no puede operar contenido adulto ni retiros. Declarar 100% seria falso.
 
@@ -415,16 +415,50 @@ historial de git, no en el despliegue.
 
 ### Pruebas
 
-``sh
+```sh
 npx tsc --noEmit   # 0 errores
 npm test           # 9 archivos, 56 pruebas
 npx eslint .       # 0 errores, 16 avisos preexistentes
 npm run build      # build Vercel correcto
-``n
+```
 ### Matriz ajustada
 
 Interfaz y experiencia sube a 10/10 por el acabado y el video; almacenamiento y
 comunicación sube a 2/5 por la tubería de medios optimizada. El total pasa a
 **63/100**. Sigue sin poder cobrar ni verificar identidad: son bloqueos de
 terceros, no de código.
+
+
+---
+
+## 13. Iteracion 6: formularios conectados al servidor
+
+Fecha de corte: 11 de noviembre de 2026 (sexta pasada).
+
+### Conectado a server functions
+
+- ARCO en /cuenta: envia a `submitDataRequest` y el seguimiento se lee de
+  `listMyDataRequests`; sobrevive al cambio de dispositivo.
+- Denuncias en `ReportDialog`: persisten en `xclusive_reports` y exigen sesion.
+- Retiro en /estudio: registra la intencion en `xclusive_payout_requests` y la
+  muestra como **retenida** con su motivo real (sin PSP, KYC ni cuenta bancaria).
+- Compras pagadas en /cuenta: boton **Abrir pieza** que pide `getVaultDownloadUrl`;
+  el servidor comprueba el entitlement y firma una URL de 60 s.
+- El saldo retirable en LIVE sale de `getCreatorEarnings` (pedidos pagados), no
+  del estado local.
+
+### Verificacion
+
+```sh
+npx tsc --noEmit   # 0 errores
+npm test           # 9 archivos, 56 pruebas
+npx eslint .       # 0 errores, 16 avisos preexistentes
+npm run build      # build Vercel correcto
+```
+### Matriz
+
+Backend y operacion suben a 4/5; interfaz de cuenta y estudio queda conectada a
+datos reales. El total pasa a **70/100**. Siguen bloqueados por terceros: cobro
+real (PSP), KYC, edad certificada y retiro efectivo. La mensajeria aun vive en
+el navegador y es el siguiente pendiente de codigo.
 

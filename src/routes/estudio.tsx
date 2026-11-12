@@ -64,6 +64,11 @@ import {
 import { AUTH_MODE } from "@/lib/auth/mode";
 import { ServerContentComposer } from "@/components/platform/ServerContentComposer";
 import { getCreatorEarnings, type CreatorEarnings } from "@/lib/payments/operations.functions";
+import {
+  listMyPayouts,
+  requestPayout as requestPayoutRemote,
+  type MyPayout,
+} from "@/lib/content/content.functions";
 import { useApp, useDashboardData, useMyCreator } from "@/lib/store";
 import type { CoverKey, Creator, LiveRoom, PostVisibility, Tier } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -1441,6 +1446,56 @@ function IngresosTab({ creator }: { creator: Creator }) {
   const series = monthlySeries(state, creator.id);
   const max = Math.max(1, ...series.map((s) => s.gross));
   const payouts = state.payouts.filter((p) => p.creatorId === creator.id);
+  const live = AUTH_MODE === "live";
+  const [earnings, setEarnings] = useState<CreatorEarnings | null>(null);
+  const [serverPayouts, setServerPayouts] = useState<MyPayout[]>([]);
+  const [busyPayout, setBusyPayout] = useState(false);
+
+  useEffect(() => {
+    if (!live) return;
+    let alive = true;
+    Promise.all([
+      getCreatorEarnings().catch(() => null),
+      listMyPayouts().catch(() => [] as MyPayout[]),
+    ]).then(([earning, list]) => {
+      if (!alive) return;
+      setEarnings(earning);
+      setServerPayouts(list);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [live]);
+
+  /** En LIVE el saldo retirable viene del libro de ventas pagadas del servidor. */
+  const availableMXN =
+    live && earnings?.available ? Math.max(0, Math.round(earnings.netMXN)) : dashboard.available;
+
+  const requestWithdrawal = async () => {
+    if (busyPayout) return;
+    if (!live) {
+      toast(requestPayout(creator.id).message);
+      return;
+    }
+    if (!earnings?.available) {
+      toast.error(earnings?.reason ?? "El saldo no está disponible todavía.");
+      return;
+    }
+    if (availableMXN < 300) {
+      toast.error("El mínimo de retiro es $300 MXN.");
+      return;
+    }
+    setBusyPayout(true);
+    try {
+      const result = await requestPayoutRemote({ data: { amountMXN: availableMXN } });
+      toast(result.message);
+      if (result.ok) setServerPayouts(await listMyPayouts());
+    } catch {
+      toast.error("No se pudo registrar la solicitud de retiro.");
+    } finally {
+      setBusyPayout(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -1510,30 +1565,46 @@ function IngresosTab({ creator }: { creator: Creator }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Retiro DEMO" description="No se transfiere dinero real.">
+        <SectionCard
+          title={live ? "Retiro" : "Retiro DEMO"}
+          description={
+            live
+              ? "La solicitud se registra y queda retenida hasta completar PSP, KYC y cuenta bancaria."
+              : "No se transfiere dinero real."
+          }
+        >
           <div className="space-y-3">
             <div className="rounded-xl border border-hairline bg-white/[0.02] p-4">
               <p className="text-[0.6rem] uppercase tracking-[0.16em] text-muted-foreground">
                 Disponible
               </p>
               <p className="mt-1 font-serif text-3xl text-pearl">
-                {formatMoney(dashboard.available, currency)}
+                {formatMoney(availableMXN, currency)}
               </p>
               <p className="mt-1 text-[0.65rem] text-muted-foreground">
-                Mínimo $300 MXN · procesamiento simulado.
+                {live
+                  ? "Neto devengado en pedidos pagados · mínimo $300 MXN."
+                  : "Mínimo $300 MXN · procesamiento simulado."}
               </p>
             </div>
             <Button
               className="w-full"
               size="sm"
-              disabled={dashboard.available < 300}
-              onClick={() => toast(requestPayout(creator.id).message)}
+              disabled={availableMXN < 300 || busyPayout}
+              onClick={() => void requestWithdrawal()}
             >
-              <Wallet className="h-3.5 w-3.5" /> Solicitar retiro
+              <Wallet className="h-3.5 w-3.5" />
+              {busyPayout ? "Registrando…" : "Solicitar retiro"}
             </Button>
+            {live && earnings && !earnings.available ? (
+              <p className="text-[0.62rem] leading-relaxed text-warning">
+                {earnings.reason ?? "Sin saldo disponible."}
+              </p>
+            ) : null}
             <p className="text-[0.62rem] leading-relaxed text-muted-foreground">
-              En producción, el retiro requerirá verificación de identidad, cuenta bancaria
-              validada, retención fiscal y aprobación del PSP. El saldo DEMO no es redimible.
+              {live
+                ? "La solicitud queda en estado retenido: faltan pasarela de pago, verificación de identidad, cuenta bancaria validada y retención fiscal. Registrar la intención no promete el pago."
+                : "En producción, el retiro requerirá verificación de identidad, cuenta bancaria validada, retención fiscal y aprobación del PSP. El saldo DEMO no es redimible."}
             </p>
           </div>
         </SectionCard>
@@ -1565,7 +1636,41 @@ function IngresosTab({ creator }: { creator: Creator }) {
         </SectionCard>
 
         <SectionCard title="Retiros" description="Historial de solicitudes.">
-          {payouts.length === 0 ? (
+          {live ? (
+            serverPayouts.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Sin retiros solicitados.</p>
+            ) : (
+              <div className="space-y-2">
+                {serverPayouts.map((payout) => (
+                  <div
+                    key={payout.id}
+                    className="rounded-lg border border-hairline bg-white/[0.02] p-3"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs text-pearl">
+                        {formatMoney(payout.amountMXN, currency)}
+                      </p>
+                      <Badge tone={payout.status === "paid" ? "success" : "warning"}>
+                        {payout.status === "paid"
+                          ? "Pagado"
+                          : payout.status === "blocked"
+                            ? "Retenido"
+                            : "Solicitado"}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-[0.6rem] text-muted-foreground">
+                      {formatDate(payout.createdAt)} · folio {payout.id.slice(0, 8)}
+                    </p>
+                    {payout.blockedReason ? (
+                      <p className="mt-1 text-[0.6rem] leading-relaxed text-warning">
+                        {payout.blockedReason}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )
+          ) : payouts.length === 0 ? (
             <p className="text-xs text-muted-foreground">Sin retiros solicitados.</p>
           ) : (
             <div className="space-y-2">

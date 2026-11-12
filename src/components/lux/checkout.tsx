@@ -5,6 +5,9 @@ import { toast } from "sonner";
 
 import { creatorNetMXN, platformFeeMXN, pspEstimateMXN, validateTipAmount } from "@/lib/commerce";
 import { demoMode } from "@/lib/auth/demo-accounts";
+import { AUTH_MODE } from "@/lib/auth/mode";
+import { useSession } from "@/lib/auth/SessionProvider";
+import { submitReport as submitReportRemote } from "@/lib/content/content.functions";
 import { formatMoney } from "@/lib/format";
 import { startCheckout } from "@/lib/payments/payment.functions";
 import { useApp } from "@/lib/store";
@@ -556,8 +559,59 @@ export function ReportDialog({
   onClose: () => void;
 }) {
   const { submitReport } = useApp();
+  const session = useSession();
+  const live = AUTH_MODE === "live";
   const [reason, setReason] = useState(REPORT_REASONS[0] ?? "Otro");
   const [details, setDetails] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  /**
+   * En LIVE la denuncia se persiste en `xclusive_reports` desde una server
+   * function (requiere sesión). En DEMO se mantiene el registro local.
+   */
+  const send = async () => {
+    if (busy) return;
+    if (!live) {
+      const result = submitReport({
+        targetType: target.type,
+        targetId: target.id,
+        targetLabel: target.label,
+        reason,
+        details,
+      });
+      toast(result.message);
+      if (result.ok) {
+        setDetails("");
+        onClose();
+      }
+      return;
+    }
+    if (session.status !== "signed-in") {
+      toast.error("Inicia sesión para enviar una denuncia.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await submitReportRemote({
+        data: {
+          targetType: target.type,
+          targetId: target.id,
+          targetLabel: target.label,
+          reason,
+          details,
+        },
+      });
+      toast(result.message);
+      if (result.ok) {
+        setDetails("");
+        onClose();
+      }
+    } catch {
+      toast.error("No se pudo registrar la denuncia.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <Modal
@@ -570,23 +624,8 @@ export function ReportDialog({
           <Button variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
-          <Button
-            onClick={() => {
-              const result = submitReport({
-                targetType: target.type,
-                targetId: target.id,
-                targetLabel: target.label,
-                reason,
-                details,
-              });
-              toast(result.message);
-              if (result.ok) {
-                setDetails("");
-                onClose();
-              }
-            }}
-          >
-            <ShieldCheck className="h-4 w-4" /> Enviar reporte
+          <Button disabled={busy} onClick={() => void send()}>
+            <ShieldCheck className="h-4 w-4" /> {busy ? "Enviando…" : "Enviar reporte"}
           </Button>
         </div>
       }

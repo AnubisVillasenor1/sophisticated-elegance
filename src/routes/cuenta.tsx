@@ -47,6 +47,14 @@ import {
 } from "@/lib/legal";
 import { fanPurchases, fanSubscriptions, getCreator, userNotifications } from "@/lib/selectors";
 import { DEMO_ACCOUNTS, demoMode } from "@/lib/auth/demo-accounts";
+import { AUTH_MODE } from "@/lib/auth/mode";
+import {
+  listMyDataRequests,
+  submitDataRequest as submitDataRequestRemote,
+  type DataRequestKind,
+  type MyDataRequest,
+} from "@/lib/content/content.functions";
+import { getVaultDownloadUrl } from "@/lib/payments/operations.functions";
 import { listMyOrders, type MyOrder } from "@/lib/payments/payment.functions";
 import { useSession } from "@/lib/auth/SessionProvider";
 import { hasAcceptedCurrent, useApp } from "@/lib/store";
@@ -515,6 +523,24 @@ function FanPurchasesView({ purchases }: { purchases: Purchase[] }) {
   const { state } = useApp();
   const [orders, setOrders] = useState<MyOrder[]>([]);
   const [loading, setLoading] = useState(!demoMode);
+  const [opening, setOpening] = useState<string | null>(null);
+
+  const openPiece = async (orderId: string, itemId: string) => {
+    if (opening) return;
+    setOpening(orderId);
+    try {
+      const result = await getVaultDownloadUrl({ data: { path: "", itemId } });
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+      window.open(result.url, "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error("No se pudo abrir la pieza.");
+    } finally {
+      setOpening(null);
+    }
+  };
 
   useEffect(() => {
     if (demoMode) return;
@@ -597,6 +623,17 @@ function FanPurchasesView({ purchases }: { purchases: Purchase[] }) {
                   <p className="text-xs text-silver">
                     {formatMoney(order.amountMXN, state.currency)}
                   </p>
+                  {order.status === "paid" && order.itemId ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={opening === order.id}
+                      onClick={() => void openPiece(order.id, order.itemId)}
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      {opening === order.id ? "Abriendo…" : "Abrir pieza"}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -1158,13 +1195,89 @@ function LegalTab() {
   );
 }
 
+const ARCO_STATUS: Record<
+  string,
+  {
+    label: string;
+    tone: "success" | "info" | "warning" | "outline" | "dark";
+  }
+> = {
+  pending: { label: "Pendiente", tone: "warning" },
+  in_review: { label: "En revisión", tone: "info" },
+  fulfilled: { label: "Atendida", tone: "success" },
+  rejected: { label: "Rechazada", tone: "outline" },
+  resuelta: { label: "Atendida", tone: "success" },
+  en_revision: { label: "En revisión", tone: "info" },
+};
+
+/**
+ * Derechos ARCO.
+ *
+ * En LIVE la solicitud se registra en `xclusive_data_requests` mediante una
+ * server function y el seguimiento se lee de la base de datos: no depende del
+ * navegador y sobrevive a cualquier dispositivo. En DEMO se conserva el
+ * comportamiento local para poder recorrer el flujo sin backend.
+ */
 function ArcoTab() {
   const { state, user, submitDataRequest } = useApp();
+  const session = useSession();
+  const live = AUTH_MODE === "live" && session.status === "signed-in";
   const [type, setType] = useState<DataRequest["type"]>("acceso");
   const [details, setDetails] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [remote, setRemote] = useState<MyDataRequest[]>([]);
+  const [loading, setLoading] = useState(live);
+
+  const loadRemote = useCallback(async () => {
+    try {
+      setRemote(await listMyDataRequests());
+    } catch {
+      setRemote([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!live) {
+      setLoading(false);
+      return;
+    }
+    void loadRemote();
+  }, [live, loadRemote]);
+
   if (!user) return null;
 
-  const requests = state.dataRequests.filter((r) => r.userId === user.id);
+  const localRequests = state.dataRequests.filter((r) => r.userId === user.id);
+
+  const send = async () => {
+    if (busy) return;
+    if (details.trim().length < 10) {
+      toast.error("Describe tu solicitud con al menos 10 caracteres.");
+      return;
+    }
+    if (!live) {
+      const result = submitDataRequest(type, details);
+      toast(result.message);
+      if (result.ok) setDetails("");
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await submitDataRequestRemote({
+        data: { kind: type as DataRequestKind, details },
+      });
+      toast(result.message);
+      if (result.ok) {
+        setDetails("");
+        await loadRemote();
+      }
+    } catch {
+      toast.error("No se pudo registrar la solicitud.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="grid gap-5 lg:grid-cols-12">
@@ -1193,15 +1306,8 @@ function ArcoTab() {
               className="min-h-28"
             />
           </Field>
-          <Button
-            size="sm"
-            onClick={() => {
-              const result = submitDataRequest(type, details);
-              toast(result.message);
-              if (result.ok) setDetails("");
-            }}
-          >
-            <ShieldCheck className="h-3.5 w-3.5" /> Enviar solicitud
+          <Button size="sm" disabled={busy} onClick={() => void send()}>
+            <ShieldCheck className="h-3.5 w-3.5" /> {busy ? "Enviando…" : "Enviar solicitud"}
           </Button>
           <div className="rounded-xl border border-info/25 bg-info/5 p-4 text-[0.68rem] leading-relaxed text-muted-foreground">
             <p className="font-medium text-info">Plazos</p>
@@ -1220,11 +1326,50 @@ function ArcoTab() {
         description="Seguimiento de cada derecho ejercido."
         className="lg:col-span-6"
       >
-        {requests.length === 0 ? (
+        {live ? (
+          loading ? (
+            <p className="text-xs text-muted-foreground">Consultando el servidor…</p>
+          ) : remote.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No has enviado solicitudes ARCO.</p>
+          ) : (
+            <div className="space-y-2">
+              {remote.map((request) => {
+                const status = ARCO_STATUS[request.status] ?? {
+                  label: request.status,
+                  tone: "outline" as const,
+                };
+                return (
+                  <div
+                    key={request.id}
+                    className="rounded-lg border border-hairline bg-white/[0.02] p-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs capitalize text-pearl">{request.kind}</p>
+                      <Badge tone={status.tone}>{status.label}</Badge>
+                    </div>
+                    {request.details ? (
+                      <p className="mt-1 text-[0.65rem] leading-relaxed text-muted-foreground">
+                        {request.details}
+                      </p>
+                    ) : null}
+                    {request.resolution ? (
+                      <p className="mt-1 text-[0.65rem] leading-relaxed text-pearl/80">
+                        Resolución: {request.resolution}
+                      </p>
+                    ) : null}
+                    <p className="mt-1.5 text-[0.58rem] text-muted-foreground">
+                      Creada {formatDate(request.createdAt)} · folio {request.id.slice(0, 8)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : localRequests.length === 0 ? (
           <p className="text-xs text-muted-foreground">No has enviado solicitudes ARCO.</p>
         ) : (
           <div className="space-y-2">
-            {requests.map((request) => (
+            {localRequests.map((request) => (
               <div
                 key={request.id}
                 className="rounded-lg border border-hairline bg-white/[0.02] p-3"

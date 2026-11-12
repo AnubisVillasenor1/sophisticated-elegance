@@ -5,7 +5,7 @@ Club editorial privado para creadoras independientes: membresías, clips, salone
 **Sitio en producción:** https://sophisticated-elegance.vercel.app
 **Repositorio:** https://github.com/AnubisVillasenor1/sophisticated-elegance
 
-> **Estado real:** identidad y permisos ya se resuelven en el servidor con Supabase Auth. El comercio, los pagos, los retiros y la verificación de edad certificada **siguen siendo DEMO o dependen de terceros**. Los precios, comisiones y saldos son datos de demostración claramente etiquetados.
+> **Estado real:** identidad y permisos ya se resuelven en el servidor con Supabase Auth. El contenido de creadoras, ARCO, denuncias y retiros ya persisten en la base de datos. El comercio, los pagos, los retiros efectivos y la verificación de edad certificada **siguen siendo DEMO o dependen de terceros**. Los precios, comisiones y saldos son datos de demostración claramente etiquetados.
 
 ### Autenticación (remediación P0)
 
@@ -15,6 +15,51 @@ Club editorial privado para creadoras independientes: membresías, clips, salone
 - **Auditoría:** las acciones sensibles emiten eventos `xclusive.audit` con actor, acción y resultado.
 
 El detalle, la matriz antes/después y lo que sigue bloqueado están en [`docs/AUDITORIA-REMEDIACION.md`](docs/AUDITORIA-REMEDIACION.md). El despliegue canónico es Vercel: [`DEPLOY.md`](DEPLOY.md).
+
+---
+
+## Estado de producción · 11 de noviembre de 2026
+
+**Avance real estimado: 70/100.** No se declara 100%: falta dinero real, identidad
+certificada y retiros, que dependen de proveedores externos.
+
+| Área | Estado | Evidencia |
+| --- | --- | --- |
+| Autenticación y roles | Operativo | Supabase Auth; rol resuelto en servidor |
+| Contenido de creadoras | Operativo | `xclusive_content` + buckets `xclusive-public` / `vault` |
+| Publicación desde el estudio | Operativo | `ServerContentComposer` sube portada y archivo privado |
+| Catálogo `/clips` | Operativo | Lee piezas publicadas y permite comprarlas |
+| Precio y reparto | Operativo en servidor | `resolveContentPrice`, partida doble |
+| Derechos ARCO | Operativo | `submitDataRequest` / `listMyDataRequests` en `xclusive_data_requests` |
+| Denuncias | Operativo | `submitReport` en `xclusive_reports` |
+| Retiros | Registro retenido | `xclusive_payout_requests`, estado `blocked` con motivo |
+| Reproducción de compras | Operativo | `getVaultDownloadUrl` con entitlement vigente |
+| Cobro real | **Bloqueado** | webhook responde 503 sin PSP |
+| KYC y edad certificada | **Bloqueado** | sin proveedor externo |
+
+### Variables de entorno necesarias para desbloquear
+
+| Variable | Para qué |
+| --- | --- |
+| `PAYMENT_PROVIDER` | `stripe` para activar el cobro |
+| `STRIPE_SECRET_KEY` | crear sesiones de pago reales |
+| `STRIPE_WEBHOOK_SECRET` | firmar y verificar `/api/payments/webhook` |
+| `ADMIN_EMAILS` | lista de administración (separada por comas) |
+| `CREATOR_EMAILS` / `CREATOR_SLUGS` | vincular cuentas a perfiles de creadora |
+| Proveedor KYC | verificación de identidad y edad certificada |
+
+Mientras esas variables no existan, la plataforma es navegable, publica contenido y
+registra solicitudes, pero **no mueve dinero ni verifica identidad**. Es un fallo
+cerrado deliberado, no un error.
+
+### Comprobaciones de esta iteración
+
+```sh
+npx tsc --noEmit        # 0 errores
+npm test                # 9 archivos, 56 pruebas
+npx eslint .            # 0 errores, 16 avisos preexistentes
+npm run build           # build Vercel correcto
+```
 
 ---
 
@@ -173,7 +218,7 @@ npx vercel deploy --prebuilt --prod
 
 1. **Pagos y KYC:** cuenta live del PSP, onboarding de creadoras, impuestos y conciliación.
 2. **Verificación de edad:** proveedor certificado y aprobación del PSP para contenido sensible.
-3. **Backend real:** esquema Supabase con RLS, autenticación, storage y migración del store local.
+3. **Mensajería persistente:** migrar `xclusive_messages` y las server functions; hoy el hilo vive en el navegador. _(Backend de contenido, ARCO, denuncias y retiros: ya implementado.)_
 4. **Correo transaccional** y notificaciones fuera del navegador.
 5. **Cloudflare Workers:** requiere `CLOUDFLARE_API_TOKEN` y `wrangler login` para el preset alternativo.
 
