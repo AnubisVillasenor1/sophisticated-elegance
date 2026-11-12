@@ -251,6 +251,24 @@ export const getAdminOverview = createServerFn({ method: "GET" })
         .limit(5),
     ]);
 
+    // Una clave de servicio inválida no debe simular un panel vacío: se declara
+    // no disponible y se registra el fallo.
+    if (profiles.error || memberships.error || latest.error) {
+      auditEvent({
+        action: "admin.overview",
+        actorId: context.userId,
+        outcome: "error",
+        detail: "service_role_rejected",
+      });
+      return {
+        available: false,
+        reason: "La credencial de servicio no es válida en este entorno.",
+        profiles: 0,
+        memberships: 0,
+        latest: [],
+      };
+    }
+
     auditEvent({ action: "admin.overview", actorId: context.userId, outcome: "ok" });
 
     return {

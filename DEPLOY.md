@@ -11,10 +11,10 @@ el entorno canónico ni se valida en esta guía**.
 
 ## Modos de autenticación
 
-| Modo | Cómo se activa | Qué hace |
-| ---- | -------------- | -------- |
-| **LIVE** (por defecto) | Sin flag, o `VITE_DEMO_MODE=false` | Supabase Auth, sesión verificada por servidor, roles por allowlist. Sin credenciales demo. |
-| **DEMO** | `npm run dev:demo` / `npm run build:demo`, o `VITE_DEMO_MODE=true` | Cuentas locales de `src/lib/seed.ts`. Todo el comercio es simulado. |
+| Modo                   | Cómo se activa                                                     | Qué hace                                                                                   |
+| ---------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| **LIVE** (por defecto) | Sin flag, o `VITE_DEMO_MODE=false`                                 | Supabase Auth, sesión verificada por servidor, roles por allowlist. Sin credenciales demo. |
+| **DEMO**               | `npm run dev:demo` / `npm run build:demo`, o `VITE_DEMO_MODE=true` | Cuentas locales de `src/lib/seed.ts`. Todo el comercio es simulado.                        |
 
 El modo se fija en **tiempo de compilación**. Un build LIVE no puede activar el
 modo DEMO desde el navegador.
@@ -112,5 +112,8 @@ Para las variables `VITE_*`, usa el panel del proyecto o `vercel env add` y
 - No hay rollback automatizado; se revierte con el panel de Vercel.
 - La auditoría y la aceptación legal quedan en logs del servidor porque aún no
   existen las tablas `audit_log` y `legal_acceptances`.
+- La credencial de servicio configurada es rechazada con `401` por la API de
+  administración de Supabase. El panel admin y el borrado ARCO devuelven
+  “no disponible” hasta rotarla.
 - El comercio, los pagos y la verificación de edad siguen siendo DEMO o
   dependen de terceros. Ver [`docs/AUDITORIA-REMEDIACION.md`](docs/AUDITORIA-REMEDIACION.md).

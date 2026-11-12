@@ -28,20 +28,20 @@ misma matriz de la auditoría, actualizada solo donde existe evidencia verificab
 
 ## 2. Qué cambió (antes → después)
 
-| # | Hallazgo P0 | Antes | Después | Evidencia |
-| - | ----------- | ----- | ------- | --------- |
-| 1 | Login y registro | `store.tsx` comparaba `demoHash` contra usuarios del estado local | LIVE usa `supabase.auth.signInWithPassword` / `signUp`; DEMO solo existe si el build lo declara | `src/lib/auth/SessionProvider.tsx`, `src/routes/entrar.tsx`, `src/routes/registro.tsx` |
-| 2 | Sesión | `sessionUserId` persistido en `localStorage` | En LIVE la sesión es de Supabase y `sessionUserId` se fuerza a `null` al hidratar y al persistir | `src/lib/store.tsx` (hidratación y persistencia) |
-| 3 | Identidad mostrada | `user` salía del estado local | En LIVE `user` se proyecta desde el `viewer` verificado por el servidor | `userFromViewer` en `src/lib/store.tsx` |
-| 4 | Roles | `role` se leía y modificaba en el cliente | El servidor resuelve `fan` / `creator` / `admin` con allowlist y `app_metadata`; `user_metadata` nunca concede rol | `src/lib/auth/roles.ts`, `roles.server.ts`, `auth.functions.ts` |
-| 5 | Credenciales DEMO | Visibles en la interfaz y en el bundle | Solo se renderizan si `VITE_DEMO_MODE=true`; el build LIVE las elimina. El texto plano de la contraseña demo ya no está en la semilla | `src/lib/auth/demo-accounts.ts`, `src/lib/seed.ts`, `src/routes/index.tsx` |
-| 6 | Guardas del store | `login`/`signup` siempre operaban localmente | En LIVE devuelven error y remiten al flujo real; `logout` revoca en Supabase | `src/lib/store.tsx` |
-| 7 | Abuso y fuerza bruta | Sin límite propio | Limitador por clave en server functions + límites nativos de Supabase Auth | `src/lib/auth/rate-limit.ts`, `auth.functions.ts` |
-| 8 | Trazabilidad | Sin eventos de autorización | Eventos JSON estructurados (`xclusive.audit`) con acción, actor, resultado y detalle mínimo | `src/lib/auth/audit.server.ts` |
-| 9 | Secretos | `.env` versionado | `.env` deja de trackearse; `.gitignore` cubre `.env*`; se añaden `.env.example` y `.env.demo` | `.gitignore`, `.env.example` |
-| 10 | Modo DEMO/LIVE | Ambos convivían sin frontera | El modo se fija en compilación (`--mode demo` o `VITE_DEMO_MODE=true`); el resto es LIVE | `vite.config.ts`, `src/lib/auth/mode.ts`, scripts `dev:demo` / `build:demo` |
-| 11 | Deploy canónico | README decía Vercel; DEPLOY describía Cloudflare | Vercel es el destino canónico; Cloudflare queda como alternativa documentada y no probada en esta iteración | `DEPLOY.md` |
-| 12 | Perfil y membresías | Sin lectura/escritura real | Server functions con RLS: `getViewer`, `updateMyProfile`, `listMyMemberships` | `src/lib/auth/auth.functions.ts` |
+| #   | Hallazgo P0          | Antes                                                             | Después                                                                                                                               | Evidencia                                                                              |
+| --- | -------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1   | Login y registro     | `store.tsx` comparaba `demoHash` contra usuarios del estado local | LIVE usa `supabase.auth.signInWithPassword` / `signUp`; DEMO solo existe si el build lo declara                                       | `src/lib/auth/SessionProvider.tsx`, `src/routes/entrar.tsx`, `src/routes/registro.tsx` |
+| 2   | Sesión               | `sessionUserId` persistido en `localStorage`                      | En LIVE la sesión es de Supabase y `sessionUserId` se fuerza a `null` al hidratar y al persistir                                      | `src/lib/store.tsx` (hidratación y persistencia)                                       |
+| 3   | Identidad mostrada   | `user` salía del estado local                                     | En LIVE `user` se proyecta desde el `viewer` verificado por el servidor                                                               | `userFromViewer` en `src/lib/store.tsx`                                                |
+| 4   | Roles                | `role` se leía y modificaba en el cliente                         | El servidor resuelve `fan` / `creator` / `admin` con allowlist y `app_metadata`; `user_metadata` nunca concede rol                    | `src/lib/auth/roles.ts`, `roles.server.ts`, `auth.functions.ts`                        |
+| 5   | Credenciales DEMO    | Visibles en la interfaz y en el bundle                            | Solo se renderizan si `VITE_DEMO_MODE=true`; el build LIVE las elimina. El texto plano de la contraseña demo ya no está en la semilla | `src/lib/auth/demo-accounts.ts`, `src/lib/seed.ts`, `src/routes/index.tsx`             |
+| 6   | Guardas del store    | `login`/`signup` siempre operaban localmente                      | En LIVE devuelven error y remiten al flujo real; `logout` revoca en Supabase                                                          | `src/lib/store.tsx`                                                                    |
+| 7   | Abuso y fuerza bruta | Sin límite propio                                                 | Limitador por clave en server functions + límites nativos de Supabase Auth                                                            | `src/lib/auth/rate-limit.ts`, `auth.functions.ts`                                      |
+| 8   | Trazabilidad         | Sin eventos de autorización                                       | Eventos JSON estructurados (`xclusive.audit`) con acción, actor, resultado y detalle mínimo                                           | `src/lib/auth/audit.server.ts`                                                         |
+| 9   | Secretos             | `.env` versionado                                                 | `.env` deja de trackearse; `.gitignore` cubre `.env*`; se añaden `.env.example` y `.env.demo`                                         | `.gitignore`, `.env.example`                                                           |
+| 10  | Modo DEMO/LIVE       | Ambos convivían sin frontera                                      | El modo se fija en compilación (`--mode demo` o `VITE_DEMO_MODE=true`); el resto es LIVE                                              | `vite.config.ts`, `src/lib/auth/mode.ts`, scripts `dev:demo` / `build:demo`            |
+| 11  | Deploy canónico      | README decía Vercel; DEPLOY describía Cloudflare                  | Vercel es el destino canónico; Cloudflare queda como alternativa documentada y no probada en esta iteración                           | `DEPLOY.md`                                                                            |
+| 12  | Perfil y membresías  | Sin lectura/escritura real                                        | Server functions con RLS: `getViewer`, `updateMyProfile`, `listMyMemberships`                                                         | `src/lib/auth/auth.functions.ts`                                                       |
 
 ### Garantías concretas del nuevo flujo
 
@@ -82,23 +82,34 @@ Comprobaciones adicionales:
 
 Archivo: `src/lib/auth/auth.test.ts`.
 
+### Comprobación contra Supabase real
+
+- `GET /auth/v1/settings` con la clave publishable: **200**, proveedor de correo
+  habilitado y registro abierto.
+- `POST /auth/v1/admin/users` con la clave de servicio configurada: **401**. La
+  creación de una cuenta de prueba y su borrado no pudieron completarse; se
+  documenta como bloqueo en la sección 5 en lugar de declararlo superado.
+- Producción LIVE: `/`, `/entrar`, `/registro`, `/explorar`, `/cuenta` y
+  `/health.json` responden **200**. `/entrar` no contiene cuentas ni contraseñas
+  DEMO.
+
 ---
 
 ## 4. Matriz de avance recalculada
 
-| Dominio | Peso | Antes | Ahora | Justificación |
-| ------- | ---: | ----: | ----: | ------------- |
-| Interfaz y experiencia | 10 | 9 | 9 | Sin cambios; se preservó el acabado y el tutorial |
-| CI y compilación | 10 | 10 | 10 | `tsc`, pruebas, lint y build verificados |
-| Backend y persistencia | 15 | 0 | 2 | Perfil y membresías ya se leen/escriben en Supabase con RLS; el comercio sigue local |
-| Autenticación y RBAC | 15 | 0 | 8 | Auth real, sesión de servidor, rol de servidor, rate limit y auditoría; faltan MFA, recuperación guiada y revocación desde la UI |
-| Pagos y contabilidad | 15 | 0 | 0 | Sin PSP, webhooks, ledger ni conciliación |
-| KYC, edad y consentimiento | 10 | 2 | 2 | Sigue siendo declarativo; la aceptación se registra, no se certifica |
-| Almacenamiento y comunicación | 5 | 0 | 0 | Bóveda y mensajería siguen siendo demo |
-| Seguridad y observabilidad | 10 | 2 | 4 | Auditoría estructurada, rate limit y secretos saneados; sin retención inmutable ni telemetría distribuida |
-| Despliegue y operaciones | 5 | 2 | 3 | Destino canónico, modos de build y entornos documentados; faltan migraciones, smoke tests y rollback |
-| Cumplimiento legal y fiscal | 5 | 0 | 1 | Aceptación versionada enviada al servidor; falta tabla consultable y revisión legal |
-| **Total** | **100** | **25** | **39** | |
+| Dominio                       |    Peso |  Antes |  Ahora | Justificación                                                                                                                    |
+| ----------------------------- | ------: | -----: | -----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| Interfaz y experiencia        |      10 |      9 |      9 | Sin cambios; se preservó el acabado y el tutorial                                                                                |
+| CI y compilación              |      10 |     10 |     10 | `tsc`, pruebas, lint y build verificados                                                                                         |
+| Backend y persistencia        |      15 |      0 |      2 | Perfil y membresías ya se leen/escriben en Supabase con RLS; el comercio sigue local                                             |
+| Autenticación y RBAC          |      15 |      0 |      8 | Auth real, sesión de servidor, rol de servidor, rate limit y auditoría; faltan MFA, recuperación guiada y revocación desde la UI |
+| Pagos y contabilidad          |      15 |      0 |      0 | Sin PSP, webhooks, ledger ni conciliación                                                                                        |
+| KYC, edad y consentimiento    |      10 |      2 |      2 | Sigue siendo declarativo; la aceptación se registra, no se certifica                                                             |
+| Almacenamiento y comunicación |       5 |      0 |      0 | Bóveda y mensajería siguen siendo demo                                                                                           |
+| Seguridad y observabilidad    |      10 |      2 |      4 | Auditoría estructurada, rate limit y secretos saneados; sin retención inmutable ni telemetría distribuida                        |
+| Despliegue y operaciones      |       5 |      2 |      3 | Destino canónico, modos de build y entornos documentados; faltan migraciones, smoke tests y rollback                             |
+| Cumplimiento legal y fiscal   |       5 |      0 |      1 | Aceptación versionada enviada al servidor; falta tabla consultable y revisión legal                                              |
+| **Total**                     | **100** | **25** | **39** |                                                                                                                                  |
 
 ### Lectura correcta del número
 
@@ -123,14 +134,20 @@ Estos puntos **no se declaran terminados**:
    membresía. Corregirlo exige una migración que este repositorio no puede editar.
 5. **Tablas `legal_acceptances` y `audit_log`.** Sin ellas, la evidencia legal y
    de auditoría queda en los logs del proveedor, no en una tabla consultable.
-6. **Almacenamiento privado de la bóveda.** Sin URLs firmadas, control de
+6. **Credencial de servicio de Supabase.** La clave `sb_secret_…` configurada en
+   Vercel es rechazada con `401` por la API de administración. Por eso el panel
+   de administración y el borrado ARCO se declaran **no disponibles** hasta
+   rotar la clave. No se simula un panel vacío: la server function devuelve
+   `available: false`. La clave publishable sí fue validada contra
+   `/auth/v1/settings`.
+7. **Almacenamiento privado de la bóveda.** Sin URLs firmadas, control de
    derechos, revocación ni registro de descargas.
-7. **Observabilidad de producción.** Sin OpenTelemetry, métricas de negocio,
+8. **Observabilidad de producción.** Sin OpenTelemetry, métricas de negocio,
    alertas ni SLO.
-8. **Recuperación de cuenta y MFA.** Supabase puede enviar correos, pero no hay
+9. **Recuperación de cuenta y MFA.** Supabase puede enviar correos, pero no hay
    flujo de recuperación probado ni segundo factor.
-9. **Consentimiento de las tres fotos de personas reales.** Sigue sin publicarse
-   por falta de consentimiento verificable.
+10. **Consentimiento de las tres fotos de personas reales.** Sigue sin publicarse
+    por falta de consentimiento verificable.
 
 ---
 
