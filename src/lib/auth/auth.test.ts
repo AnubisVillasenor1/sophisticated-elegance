@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { parseCreatorSlugMap, resolveCreatorSlug } from "./creator-link";
 import { mapAuthError } from "./errors";
 import { resolveAuthMode } from "./mode";
 import { consumeRateLimit, type Bucket } from "./rate-limit";
@@ -80,6 +81,49 @@ describe("resolveRole", () => {
     expect(
       resolveRole({ email: "x@x.com", claims: { app_metadata: { role: "superadmin" } } }),
     ).toBe("fan");
+  });
+});
+
+describe("vínculo creadora → slug", () => {
+  it("solo se resuelve para el rol creator", () => {
+    const map = parseCreatorSlugMap("creadora@x.test=valentina-r");
+    expect(resolveCreatorSlug({ role: "fan", email: "creadora@x.test", map })).toBeNull();
+    expect(resolveCreatorSlug({ role: "admin", email: "creadora@x.test", map })).toBeNull();
+    expect(resolveCreatorSlug({ role: "creator", email: "creadora@x.test", map })).toBe(
+      "valentina-r",
+    );
+  });
+
+  it("app_metadata.creator_slug tiene prioridad sobre el mapa de entorno", () => {
+    expect(
+      resolveCreatorSlug({
+        role: "creator",
+        email: "creadora@x.test",
+        claims: { app_metadata: { creator_slug: "marea" } },
+        map: { "creadora@x.test": "valentina-r" },
+      }),
+    ).toBe("marea");
+  });
+
+  it("user_metadata.creator_slug no vincula nada", () => {
+    expect(
+      resolveCreatorSlug({
+        role: "creator",
+        email: "creadora@x.test",
+        claims: { user_metadata: { creator_slug: "valentina-r" }, app_metadata: {} },
+      }),
+    ).toBeNull();
+  });
+
+  it("descarta slugs y entradas inválidas", () => {
+    expect(parseCreatorSlugMap("sin-arroba=valentina; a@x.test=../etc/passwd")).toEqual({});
+    expect(
+      resolveCreatorSlug({
+        role: "creator",
+        email: "a@x.test",
+        claims: { app_metadata: { creator_slug: "../../admin" } },
+      }),
+    ).toBeNull();
   });
 });
 

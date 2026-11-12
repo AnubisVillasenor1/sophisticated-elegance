@@ -51,6 +51,7 @@ function SalonesPage() {
   return (
     <SiteLayout>
       <PageHero
+        cover="atrio"
         eyebrow="Salones"
         title={
           <>

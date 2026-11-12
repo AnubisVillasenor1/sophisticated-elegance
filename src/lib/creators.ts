@@ -1,8 +1,4 @@
-import valentina from "@/assets/creator-valentina.jpg";
-import selene from "@/assets/creator-selene.jpg";
-import aurora from "@/assets/creator-aurora.jpg";
-import isabella from "@/assets/creator-isabella.jpg";
-
+import { CREATOR_PORTRAITS } from "./creator-portraits";
 import { subscriptionPrice } from "./pricing";
 
 export type TierName = "Insider" | "VIP Club" | "Xtrime Inner Circle";
@@ -51,7 +47,7 @@ export const creators: Creator[] = [
     name: "Valentina R.",
     title: "Musa de la luz carmesí",
     bio: "Fotógrafa y performer. Convierte cada transmisión en una pieza de cine nocturno: luz roja, silencio y miradas que cuentan historias.",
-    image: valentina,
+    image: CREATOR_PORTRAITS.valentina,
     tags: ["fotografía artística", "cine", "noche", "estética oscura"],
     tiers: tiers(9),
     rooms: [
@@ -69,7 +65,7 @@ export const creators: Creator[] = [
     name: "Selene M.",
     title: "Elegancia en obsidiana",
     bio: "Estilista y coleccionista de joyería. Comparte rituales de belleza, moda de autor y conversaciones íntimas sobre lujo silencioso.",
-    image: selene,
+    image: CREATOR_PORTRAITS.selene,
     tags: ["moda", "joyería", "lujo", "belleza"],
     tiers: tiers(12),
     rooms: [
@@ -87,7 +83,7 @@ export const creators: Creator[] = [
     name: "Aurora L.",
     title: "Guardiana del jardín prohibido",
     bio: "Artista visual y poeta. Mezcla flores, palabras y música ambiental en encuentros que se sienten como un sueño compartido.",
-    image: aurora,
+    image: CREATOR_PORTRAITS.aurora,
     tags: ["poesía", "arte", "música", "naturaleza"],
     tiers: tiers(8),
     rooms: [
@@ -105,7 +101,7 @@ export const creators: Creator[] = [
     name: "Isabella D.",
     title: "Sommelier de medianoche",
     bio: "Sommelier y anfitriona. Catas guiadas, maridajes y la conversación más elegante de la red, siempre a la luz de las velas.",
-    image: isabella,
+    image: CREATOR_PORTRAITS.isabella,
     tags: ["vino", "gastronomía", "conversación", "velas"],
     tiers: tiers(15),
     rooms: [

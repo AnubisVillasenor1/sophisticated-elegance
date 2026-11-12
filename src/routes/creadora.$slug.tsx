@@ -122,6 +122,7 @@ function CreatorProfilePage() {
       <section className="relative border-b border-hairline">
         <Cover
           kind={creator.cover}
+          src={creator.image}
           alt={`Portada de ${creator.name}`}
           className="h-64 w-full sm:h-80 lg:h-96"
         >

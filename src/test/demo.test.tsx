@@ -128,7 +128,10 @@ describe("demo flows", () => {
           capacity: 20,
         }).ok,
       ).toBe(true);
-      expect(get()!.acceptLegal(["terminos"]).ok).toBeDefined();
+    });
+
+    await act(async () => {
+      await expect(get()!.acceptLegal(["terminos"])).resolves.toMatchObject({ ok: true });
     });
 
     await waitFor(() => {

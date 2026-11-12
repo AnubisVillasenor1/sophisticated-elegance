@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
+
+import { Cover } from "@/components/lux/ui";
+import type { CoverKey } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
 import { BrandWatermark } from "./brand";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
@@ -21,14 +25,22 @@ export function PageHero({
   title,
   description,
   aside,
+  cover,
 }: {
   eyebrow: string;
   title: ReactNode;
   description: ReactNode;
   aside?: ReactNode;
+  cover?: CoverKey;
 }) {
   return (
     <section className="relative overflow-hidden border-b border-hairline">
+      {cover ? (
+        <>
+          <Cover kind={cover} alt="" className="pointer-events-none absolute inset-0 opacity-40" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/30" />
+        </>
+      ) : null}
       <div className="pointer-events-none absolute inset-0 aura" />
       <div className="pointer-events-none absolute inset-0 bg-ember opacity-40" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-signal/45 to-transparent" />

@@ -204,3 +204,74 @@ Sin `ADMIN_EMAILS` no existe ningún administrador. Es intencional.
    firmados antes de habilitar cualquier cobro.
 5. Contratar KYC y verificación de edad certificada.
 6. Añadir telemetría, alertas y respaldo/restauración probados.
+
+---
+
+## 9. Iteración 2: identidad estable, evidencia legal y segundo factor
+
+Fecha de corte: 11 de noviembre de 2026 (segunda pasada).
+
+### Correcciones aplicadas
+
+| Hallazgo | Corrección | Evidencia |
+| --- | --- | --- |
+| `joinedAt` se recalculaba en cada render LIVE | `Viewer.createdAt` sale de `profiles.created_at`; el perfil se crea una sola vez con `upsert ... ignoreDuplicates` | `src/lib/auth/auth.functions.ts`, `userFromViewer` en `src/lib/store.tsx` |
+| `acceptLegal` no persistía en LIVE | Se firma en el servidor con SHA-256, id de recibo y fecha; el navegador guarda el recibo y refresca la UI | `recordLegalAcceptance`, `src/lib/auth/legal-receipts.ts` |
+| El alta con confirmación por correo perdía la evidencia | Se guarda como evidencia pendiente y se envía en el primer inicio de sesión verificado | `savePendingLegalEvidence` / `flushPendingLegalEvidence`, `SessionProvider` |
+| El rol `creator` no abría `/estudio` | El servidor resuelve `creatorSlug` desde `app_metadata.creator_slug` o `CREATOR_SLUGS`; nunca desde `user_metadata` | `src/lib/auth/creator-link.ts`, `src/routes/estudio.tsx` |
+| Los 4 retratos y 2 portadas no se usaban | Retratos asignados a Valentina, Alba, Sofía y Maréa; `atrio.webp` en Salones y `boveda.webp` en la bóveda | `src/lib/creator-portraits.ts`, `src/lib/seed.ts`, `src/styles.css` |
+| No había recuperación de cuenta ni MFA | Rutas `/recuperar` y `/restablecer`; inscripción TOTP y cambio de contraseña en Mi cuenta → Seguridad | `src/routes/recuperar.tsx`, `src/routes/restablecer.tsx`, `SecurityTab` |
+
+### Pruebas de esta iteración
+
+```sh
+npx tsc --noEmit        # 0 errores
+npm test                # 8 archivos, 48 pruebas aprobadas
+npm run lint            # 0 errores, 16 avisos preexistentes
+npm run build           # build LIVE correcto; incluye las 6 imágenes
+```
+
+Las pruebas nuevas cubren el vínculo creadora → slug, el rechazo de
+`user_metadata`, la deduplicación de recibos, el fallo cerrado cuando el servidor
+no firma y el reenvío de evidencia pendiente solo para el correo correcto.
+
+### Matriz actualizada
+
+| Dominio | Peso | Antes | Ahora | Motivo |
+| --- | ---: | ---: | ---: | --- |
+| Interfaz y experiencia | 10 | 9 | 10 | Todos los assets de `src/assets` y `public/covers` integrados |
+| CI y compilación | 10 | 10 | 10 | `tsc`, 48 pruebas, lint y build verificados |
+| Backend y persistencia | 15 | 2 | 3 | Perfil estable y vínculo de creadora; comercio sigue local |
+| Autenticación y RBAC | 15 | 8 | 11 | Recuperación, cambio de contraseña y TOTP; falta política AAL2 en RLS |
+| Pagos y contabilidad | 15 | 0 | 0 | Sin PSP, webhooks ni ledger |
+| KYC, edad y consentimiento | 10 | 2 | 2 | Sigue declarativo |
+| Almacenamiento y comunicación | 5 | 0 | 0 | Bóveda y mensajería demo |
+| Seguridad y observabilidad | 10 | 4 | 5 | Hash firmado por servidor; sin tabla de auditoría |
+| Despliegue y operaciones | 5 | 3 | 4 | Rutas nuevas y variables documentadas; faltan migraciones y rollback |
+| Cumplimiento legal y fiscal | 5 | 1 | 2 | Recibo firmado y versionado; falta tabla consultable y revisión legal |
+| **Total** | **100** | **39** | **46** | |
+
+### Lo que sigue bloqueado (no se declara terminado)
+
+1. **Cobros reales.** Sin PSP aprobado, claves, webhooks firmados, ledger de
+   doble entrada y conciliación no existe una compra real. El comercio sigue en
+   `localStorage` y etiquetado DEMO.
+2. **Persistencia del dominio.** Compras, suscripciones, propinas, mensajes,
+   salones y retiros necesitan tablas y migraciones que este repositorio no
+   puede crear (Lovable gestiona el esquema).
+3. **AAL2 en el servidor.** La aplicación no publica la sesión hasta verificar
+   TOTP, pero exigir AAL2 en cada consulta requiere una política RLS
+   (`auth.jwt()->>'aal' = 'aal2'`) o una comprobación con service role.
+4. **KYC/AML y edad certificada.** No hay proveedor contratado.
+5. **Bóveda privada real.** Sin bucket, URLs firmadas, revocación ni registro de
+   descargas.
+6. **Panel admin y borrado ARCO.** La clave de servicio configurada en Vercel
+   responde 401; el panel se declara no disponible en lugar de simular datos.
+7. **Consentimiento de las fotos de personas reales.** Los retratos se usan como
+   arte editorial; falta el consentimiento verificable antes de publicar
+   contenido adulto o promocional con ellas.
+
+**Conclusión honesta:** la plataforma ya autentica, recupera cuentas, protege el
+acceso con segundo factor y registra evidencia legal firmada, pero **no puede
+cobrar ni custodiar contenido privado** sin PSP, KYC y las migraciones de
+persistencia. Declarar 100% sería falso.

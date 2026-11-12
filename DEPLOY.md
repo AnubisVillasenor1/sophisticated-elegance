@@ -62,7 +62,11 @@ npm run build:demo
 - `SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_PROJECT_ID`
 - `ADMIN_EMAILS` — correos separados por comas.
-- `CREATOR_EMAILS` — correos separados por comas.
+- `CREATOR_EMAILS` - correos separados por comas.
+- `CREATOR_SLUGS` - vinculo cuenta -> perfil editorial, con pares
+  `correo=slug` separados por comas (por ejemplo `ana@x.com=valentina-r`). Sin
+  este valor, una creadora con rol pero sin `app_metadata.creator_slug` ve un
+  aviso de perfil sin vincular en `/estudio`; nunca se inventa un perfil.
 - `SUPABASE_SERVICE_ROLE_KEY` — solo si se habilitan borrado de cuenta y panel
   de administración. **Nunca** en el cliente ni con prefijo `VITE_`.
 

@@ -427,7 +427,9 @@
 .cover-obsidian,
 .cover-cherry,
 .cover-amber,
-.cover-rose {
+.cover-rose,
+.cover-atrio,
+.cover-boveda {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -470,6 +472,12 @@
 }
 .cover-rose {
   background-image: url("/covers/rose.webp");
+}
+.cover-atrio {
+  background-image: url("/covers/atrio.webp");
+}
+.cover-boveda {
+  background-image: url("/covers/boveda.webp");
 }
 
 @keyframes fade-up {

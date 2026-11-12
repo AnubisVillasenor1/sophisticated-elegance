@@ -22,7 +22,9 @@ export type CoverKey =
   | "obsidian"
   | "cherry"
   | "amber"
-  | "rose";
+  | "rose"
+  | "atrio"
+  | "boveda";
 
 export type Tier = {
   id: string;
@@ -121,6 +123,8 @@ export type Creator = {
   categories: string[];
   tags: string[];
   cover: CoverKey;
+  /** Retrato editorial opcional. Si falta, la portada usa el Cover procedural. */
+  image?: string;
   avatarTint: string;
   status: CreatorStatus;
   verified: boolean;

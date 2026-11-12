@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Badge, Button, DemoBadge, btn } from "@/components/lux/ui";
 import { BrandWatermark, BrandWordmark } from "@/components/site/brand";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { demoMode } from "@/lib/auth/demo-accounts";
 import { LEGAL_DOCS, legalDoc } from "@/lib/legal";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ function LegalDocPage() {
   const { user, acceptLegal } = useApp();
   const doc = legalDoc(docId);
   const [expanded, setExpanded] = useState<string | null>(doc?.sections[0]?.id ?? null);
+  const [saving, setSaving] = useState(false);
 
   if (!doc) {
     return (
@@ -213,15 +215,19 @@ function LegalDocPage() {
                   <p className="mt-1 text-[0.68rem] leading-relaxed text-muted-foreground">
                     {accepted
                       ? `Aceptado el ${new Date(accepted.acceptedAt).toLocaleDateString("es-MX")} · canal ${accepted.channel} · hash ${accepted.hash.slice(0, 12)}…`
-                      : "Se guardará documento, versión, fecha, cuenta, canal y hash de demostración."}
+                      : demoMode
+                        ? "Se guardará documento, versión, fecha, cuenta, canal y hash de demostración."
+                        : "El servidor firmará documento, versión, fecha, cuenta y hash SHA-256 al aceptar."}
                   </p>
                 </div>
                 <Button
                   variant={accepted ? "secondary" : "primary"}
-                  disabled={Boolean(accepted && accepted.docVersion === doc.version)}
+                  disabled={saving || Boolean(accepted && accepted.docVersion === doc.version)}
                   onClick={() => {
-                    const result = acceptLegal([doc.id]);
-                    toast(result.message);
+                    setSaving(true);
+                    void acceptLegal([doc.id])
+                      .then((result) => toast(result.message))
+                      .finally(() => setSaving(false));
                   }}
                 >
                   <Check className="h-4 w-4" /> {accepted ? "Aceptado" : "Aceptar documento"}

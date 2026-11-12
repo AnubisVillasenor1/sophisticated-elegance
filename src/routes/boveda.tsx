@@ -159,6 +159,17 @@ function FanVault() {
         />
       </div>
 
+      <div className="relative mt-4 overflow-hidden rounded-xl border border-hairline">
+        <Cover kind="boveda" alt="" className="h-24 w-full sm:h-28" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/75 to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-center px-5">
+          <p className="eyebrow text-[0.58rem]">Archivo privado</p>
+          <p className="mt-1 font-serif text-lg text-pearl sm:text-xl">
+            Tu bóveda, bajo una sola llave.
+          </p>
+        </div>
+      </div>
+
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <StudioTabs
           value={tab}

@@ -14,6 +14,11 @@ import { AUTH_MODE } from "./auth/mode";
 import { useSession } from "./auth/SessionProvider";
 import type { Viewer } from "./auth/auth.functions";
 import {
+  LEGAL_RECEIPTS_EVENT,
+  readLegalReceipts,
+  recordLegalEvidence,
+} from "./auth/legal-receipts";
+import {
   platformFeeMXN,
   resolveItemPrice,
   validateTipAmount,
@@ -209,7 +214,7 @@ export type AppApi = {
   setCreatorStatus: (creatorId: string, status: Creator["status"]) => ActionResult;
   submitDataRequest: (type: DataRequest["type"], details: string) => ActionResult;
   resolveDataRequest: (requestId: string) => ActionResult;
-  acceptLegal: (docIds: string[]) => ActionResult;
+  acceptLegal: (docIds: string[]) => Promise<ActionResult>;
   markNotificationRead: (notificationId: string) => void;
   registerReferralClick: (code: string) => void;
   canViewPost: (post: Post) => boolean;
@@ -398,7 +403,7 @@ export function normalizeStoredState(parsed: unknown): AppState | null {
  * Solo se usa en modo LIVE. La contraseña y los datos de demostración quedan
  * vacíos: la autoridad real es Supabase Auth.
  */
-function userFromViewer(viewer: Viewer): User {
+function userFromViewer(viewer: Viewer, legalAcceptances: LegalAcceptance[]): User {
   const email = viewer.email ?? "";
   return {
     id: viewer.id,
@@ -406,12 +411,14 @@ function userFromViewer(viewer: Viewer): User {
     email,
     password: "",
     role: viewer.role,
-    creatorSlug: null,
-    joinedAt: new Date().toISOString(),
+    // El vínculo creadora → slug lo resuelve el servidor; el cliente no lo elige.
+    creatorSlug: viewer.creatorSlug,
+    // Fecha estable del perfil en Supabase. No se recalcula por render.
+    joinedAt: viewer.createdAt ?? "",
     avatarTint: viewer.role === "creator" ? "#ed315c" : "#c56c83",
     referralCode: "",
     referredByCode: null,
-    legalAcceptances: [],
+    legalAcceptances,
   };
 }
 
@@ -515,12 +522,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // En modo LIVE la identidad la dicta el servidor (`session.viewer`); el estado
   // local nunca puede promover a un usuario. En DEMO se conserva el flujo local.
+  const [liveLegal, setLiveLegal] = useState<LegalAcceptance[]>([]);
+  const liveUserId = session.viewer?.id ?? null;
+
+  useEffect(() => {
+    if (AUTH_MODE !== "live") return;
+    const sync = () => setLiveLegal(readLegalReceipts(liveUserId));
+    sync();
+    window.addEventListener(LEGAL_RECEIPTS_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(LEGAL_RECEIPTS_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, [liveUserId]);
+
   const user = useMemo<User | null>(() => {
     if (AUTH_MODE === "live") {
-      return session.viewer ? userFromViewer(session.viewer) : null;
+      return session.viewer ? userFromViewer(session.viewer, liveLegal) : null;
     }
     return currentUser(state);
-  }, [session.viewer, state]);
+  }, [session.viewer, state, liveLegal]);
 
   const login = useCallback(
     (email: string, password: string): AuthResult => {
@@ -1818,7 +1840,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const acceptLegal = useCallback(
-    (docIds: string[]): ActionResult => {
+    async (docIds: string[]): Promise<ActionResult> => {
       if (!user) return { ok: false, message: "Inicia sesión para registrar tu aceptación." };
       const unique = Array.from(new Set(docIds)).filter((id) => legalDoc(id) !== null);
       if (unique.length === 0) return { ok: false, message: "No hay documentos para aceptar." };
@@ -1830,6 +1852,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
       if (missing.length === 0)
         return { ok: true, message: "Tu aceptación ya está registrada para esta versión." };
+
+      if (AUTH_MODE === "live") {
+        // La evidencia la firma el servidor; el navegador solo conserva el recibo.
+        const result = await recordLegalEvidence({
+          userId: user.id,
+          docIds: missing,
+          version: state.settings.termsVersion,
+          channel: "cuenta",
+        });
+        return { ok: result.ok, message: result.message };
+      }
+
       const records = missing.map((docId) => makeAcceptance(user.id, docId, "cuenta"));
       setState((prev) => ({
         ...prev,

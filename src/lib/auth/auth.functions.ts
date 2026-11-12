@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { auditEvent } from "./audit.server";
+import { parseCreatorSlugMap, resolveCreatorSlug } from "./creator-link";
 import { consumeRateLimit, type Bucket } from "./rate-limit";
 import type { Claims, ViewerRole } from "./roles";
 import { serverClaimsEmail, serverRoleFor } from "./roles.server";
@@ -23,13 +24,20 @@ export type Viewer = {
   displayName: string | null;
   interests: string[];
   interestsNote: string | null;
+  /** Fecha de creación del perfil en Supabase. Estable entre sesiones. */
+  createdAt: string | null;
+  /** Slug de la creadora vinculada. Solo lo resuelve el servidor. */
+  creatorSlug: string | null;
 };
 
 type ProfileRow = {
   display_name: string | null;
   interests: string[];
   interests_note: string | null;
+  created_at: string | null;
 };
+
+const PROFILE_COLUMNS = "display_name, interests, interests_note, created_at";
 
 function readMetadataString(claims: Claims, key: string): string | null {
   if (!claims) return null;
@@ -55,11 +63,29 @@ export const getViewer = createServerFn({ method: "GET" })
     const claims = (context.claims ?? null) as Claims;
     const email = serverClaimsEmail(claims);
 
-    const { data, error } = await context.supabase
-      .from("profiles")
-      .select("display_name, interests, interests_note")
-      .eq("id", context.userId)
-      .maybeSingle<ProfileRow>();
+    const readProfile = () =>
+      context.supabase
+        .from("profiles")
+        .select(PROFILE_COLUMNS)
+        .eq("id", context.userId)
+        .maybeSingle<ProfileRow>();
+
+    let { data, error } = await readProfile();
+
+    // El perfil puede no existir todavía (el alta ocurre en el cliente). Se
+    // crea una sola vez para que `created_at` sea la fecha estable de alta.
+    if (!error && !data) {
+      const created = await context.supabase
+        .from("profiles")
+        .upsert({ id: context.userId }, { onConflict: "id", ignoreDuplicates: true });
+      if (!created.error) {
+        const retry = await readProfile();
+        data = retry.data ?? null;
+        error = retry.error;
+      } else {
+        error = created.error;
+      }
+    }
 
     if (error) {
       auditEvent({
@@ -73,14 +99,22 @@ export const getViewer = createServerFn({ method: "GET" })
     // `display_name` de `user_metadata` es editable por la persona, pero solo
     // alimenta la presentación. Nunca participa en la autorización del rol.
     const metadataName = readMetadataString(claims, "display_name");
+    const role = serverRoleFor(email, claims);
 
     return {
       id: context.userId,
       email,
-      role: serverRoleFor(email, claims),
+      role,
       displayName: data?.display_name ?? metadataName,
       interests: data?.interests ?? [],
       interestsNote: data?.interests_note ?? null,
+      createdAt: data?.created_at ?? null,
+      creatorSlug: resolveCreatorSlug({
+        role,
+        email,
+        claims,
+        map: parseCreatorSlugMap(process.env["CREATOR_SLUGS"]),
+      }),
     };
   });
 
@@ -171,35 +205,63 @@ export const listMyMemberships = createServerFn({ method: "GET" })
     }));
   });
 
+export type LegalReceipt = {
+  ok: boolean;
+  receiptId: string;
+  acceptedAt: string;
+  hash: string;
+};
+
 /**
  * Evidencia de aceptación legal emitida al servidor.
  *
- * Queda en el registro de auditoría con versión y hash. La persistencia
- * consultable requiere una tabla `legal_acceptances` (ver documentación).
+ * El hash se calcula aquí, con la identidad del token, para que el cliente no
+ * pueda fabricar un recibo. Queda en el registro de auditoría con versión y
+ * hash. La persistencia consultable requiere una tabla `legal_acceptances`
+ * (ver documentación); mientras tanto el recibo firmado se guarda en el
+ * navegador y el evento inmutable vive en el log del proveedor.
  */
 export const recordLegalAcceptance = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => {
-    const raw = (input ?? {}) as { docIds?: unknown; version?: unknown; hash?: unknown };
+    const raw = (input ?? {}) as { docIds?: unknown; version?: unknown };
     const docIds = Array.isArray(raw.docIds)
-      ? raw.docIds.filter((item): item is string => typeof item === "string").slice(0, 20)
+      ? Array.from(
+          new Set(
+            raw.docIds
+              .filter((item): item is string => typeof item === "string")
+              .map((item) => item.trim().toLowerCase())
+              .filter((item) => /^[a-z0-9-]{2,40}$/.test(item)),
+          ),
+        ).slice(0, 20)
       : [];
     return {
       docIds,
       version: cleanText(raw.version, 40) ?? "desconocida",
-      hash: cleanText(raw.hash, 128) ?? "",
     };
   })
-  .handler(async ({ data, context }): Promise<{ ok: boolean }> => {
+  .handler(async ({ data, context }): Promise<LegalReceipt> => {
     enforceRateLimit(`legal:${context.userId}`, 10, 60_000, "legal.accept");
-    if (data.docIds.length === 0) return { ok: false };
+    if (data.docIds.length === 0) {
+      return { ok: false, receiptId: "", acceptedAt: "", hash: "" };
+    }
+
+    const acceptedAt = new Date().toISOString();
+    const { createHash, randomUUID } = await import("node:crypto");
+    const docs = [...data.docIds].sort();
+    const hash = createHash("sha256")
+      .update(`${context.userId}|${docs.join(",")}|${data.version}|${acceptedAt}`)
+      .digest("hex");
+    const receiptId = randomUUID();
+
     auditEvent({
       action: "legal.accept",
       actorId: context.userId,
       outcome: "ok",
-      detail: JSON.stringify({ version: data.version, hash: data.hash, docs: data.docIds }),
+      detail: JSON.stringify({ receiptId, version: data.version, hash, docs }),
     });
-    return { ok: true };
+
+    return { ok: true, receiptId, acceptedAt, hash };
   });
 
 export type AdminOverview = {

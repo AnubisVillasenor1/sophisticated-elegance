@@ -61,6 +61,7 @@ import {
   getCreator,
   monthlySeries,
 } from "@/lib/selectors";
+import { AUTH_MODE } from "@/lib/auth/mode";
 import { useApp, useDashboardData, useMyCreator } from "@/lib/store";
 import type { CoverKey, Creator, LiveRoom, PostVisibility, Tier } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -105,6 +106,8 @@ const COVERS: CoverKey[] = [
   "cherry",
   "amber",
   "rose",
+  "atrio",
+  "boveda",
 ];
 
 function StudioPage() {
@@ -150,6 +153,35 @@ function StudioPage() {
               </Link>
               <Link to="/registro" className={btn("secondary", "md")}>
                 Solicitar perfil
+              </Link>
+            </div>
+          }
+        />
+      </PlatformShell>
+    );
+  }
+
+  // En LIVE el vínculo creadora → perfil lo resuelve el servidor. Si la cuenta
+  // tiene rol de creadora pero aún no tiene perfil editorial asignado, no se
+  // inventa un estudio: se indica el paso que falta.
+  if (!creator && AUTH_MODE === "live" && !user.creatorSlug) {
+    return (
+      <PlatformShell
+        title="Mi estudio"
+        eyebrow="Perfil sin vincular"
+        subtitle="Tu cuenta tiene rol de creadora, pero todavía no está enlazada a un perfil editorial."
+      >
+        <EmptyState
+          icon={<Layers className="h-6 w-6" />}
+          title="Falta el vínculo con tu perfil."
+          description="La administración debe asignar el slug de tu perfil (app_metadata.creator_slug o la variable de servidor CREATOR_SLUGS). Mientras tanto, tu contenido y tus ingresos no están expuestos."
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link to="/cuenta" className={btn("primary", "md")}>
+                Ir a Mi cuenta
+              </Link>
+              <Link to="/ayuda" className={btn("secondary", "md")}>
+                Contactar soporte
               </Link>
             </div>
           }

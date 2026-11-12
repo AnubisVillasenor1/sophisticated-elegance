@@ -442,16 +442,19 @@ export function Tabs<T extends string>({
 
 export function Cover({
   kind,
+  src,
   alt = "",
   className,
   children,
 }: {
   kind: CoverKey;
+  /** Retrato propio de la creadora. Tiene prioridad sobre la portada temática. */
+  src?: string | undefined;
   alt?: string;
   className?: string;
   children?: ReactNode;
 }) {
-  const photo = kind === "portrait" ? portrait : kind === "salon" ? salon : null;
+  const photo = src ?? (kind === "portrait" ? portrait : kind === "salon" ? salon : null);
   return (
     <div
       className={cn(

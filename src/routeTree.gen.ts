@@ -23,7 +23,9 @@ import { Route as EstudioRouteImport } from './routes/estudio'
 import { Route as ExplorarRouteImport } from './routes/explorar'
 import { Route as MembresiasRouteImport } from './routes/membresias'
 import { Route as MensajesRouteImport } from './routes/mensajes'
+import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as RegistroRouteImport } from './routes/registro'
+import { Route as RestablecerRouteImport } from './routes/restablecer'
 import { Route as SalonesRouteImport } from './routes/salones'
 import { Route as CreadoraSlugRouteImport } from './routes/creadora.$slug'
 import { Route as LegalIndexRouteImport } from './routes/legal.index'
@@ -100,9 +102,19 @@ const MensajesRoute = MensajesRouteImport.update({
   path: '/mensajes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecuperarRoute = RecuperarRouteImport.update({
+  id: '/recuperar',
+  path: '/recuperar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestablecerRoute = RestablecerRouteImport.update({
+  id: '/restablecer',
+  path: '/restablecer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SalonesRoute = SalonesRouteImport.update({
@@ -146,7 +158,9 @@ export interface FileRoutesByFullPath {
   '/explorar': typeof ExplorarRoute
   '/membresias': typeof MembresiasRoute
   '/mensajes': typeof MensajesRoute
+  '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/restablecer': typeof RestablecerRoute
   '/salones': typeof SalonesRoute
   '/creadora/$slug': typeof CreadoraSlugRoute
   '/legal/$doc': typeof LegalDocRoute
@@ -168,7 +182,9 @@ export interface FileRoutesByTo {
   '/explorar': typeof ExplorarRoute
   '/membresias': typeof MembresiasRoute
   '/mensajes': typeof MensajesRoute
+  '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/restablecer': typeof RestablecerRoute
   '/salones': typeof SalonesRoute
   '/creadora/$slug': typeof CreadoraSlugRoute
   '/legal/$doc': typeof LegalDocRoute
@@ -191,7 +207,9 @@ export interface FileRoutesById {
   '/explorar': typeof ExplorarRoute
   '/membresias': typeof MembresiasRoute
   '/mensajes': typeof MensajesRoute
+  '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/restablecer': typeof RestablecerRoute
   '/salones': typeof SalonesRoute
   '/creadora/$slug': typeof CreadoraSlugRoute
   '/legal/$doc': typeof LegalDocRoute
@@ -215,7 +233,9 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/membresias'
     | '/mensajes'
+    | '/recuperar'
     | '/registro'
+    | '/restablecer'
     | '/salones'
     | '/creadora/$slug'
     | '/legal/$doc'
@@ -237,7 +257,9 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/membresias'
     | '/mensajes'
+    | '/recuperar'
     | '/registro'
+    | '/restablecer'
     | '/salones'
     | '/creadora/$slug'
     | '/legal/$doc'
@@ -259,7 +281,9 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/membresias'
     | '/mensajes'
+    | '/recuperar'
     | '/registro'
+    | '/restablecer'
     | '/salones'
     | '/creadora/$slug'
     | '/legal/$doc'
@@ -282,7 +306,9 @@ export interface RootRouteChildren {
   ExplorarRoute: typeof ExplorarRoute
   MembresiasRoute: typeof MembresiasRoute
   MensajesRoute: typeof MensajesRoute
+  RecuperarRoute: typeof RecuperarRoute
   RegistroRoute: typeof RegistroRoute
+  RestablecerRoute: typeof RestablecerRoute
   SalonesRoute: typeof SalonesRoute
   CreadoraSlugRoute: typeof CreadoraSlugRoute
   LegalDocRoute: typeof LegalDocRoute
@@ -390,11 +416,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MensajesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recuperar': {
+      id: '/recuperar'
+      path: '/recuperar'
+      fullPath: '/recuperar'
+      preLoaderRoute: typeof RecuperarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/registro': {
       id: '/registro'
       path: '/registro'
       fullPath: '/registro'
       preLoaderRoute: typeof RegistroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restablecer': {
+      id: '/restablecer'
+      path: '/restablecer'
+      fullPath: '/restablecer'
+      preLoaderRoute: typeof RestablecerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/salones': {
@@ -450,7 +490,9 @@ const rootRouteChildren: RootRouteChildren = {
   ExplorarRoute: ExplorarRoute,
   MembresiasRoute: MembresiasRoute,
   MensajesRoute: MensajesRoute,
+  RecuperarRoute: RecuperarRoute,
   RegistroRoute: RegistroRoute,
+  RestablecerRoute: RestablecerRoute,
   SalonesRoute: SalonesRoute,
   CreadoraSlugRoute: CreadoraSlugRoute,
   LegalDocRoute: LegalDocRoute,

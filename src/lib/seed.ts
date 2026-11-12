@@ -1,3 +1,4 @@
+import { CREATOR_PORTRAITS } from "./creator-portraits";
 import { addDaysISO, demoHash } from "./format";
 import { LEGAL_VERSION } from "./legal";
 import { subscriptionPrice } from "./pricing";
@@ -203,6 +204,7 @@ const creators: Creator[] = [
     categories: ["Fotografía", "Editorial"],
     tags: ["noir", "retrato", "jazz", "archivo", "bóveda"],
     cover: "portrait",
+    image: CREATOR_PORTRAITS.valentina,
     avatarTint: "#ed315c",
     status: "approved",
     verified: true,
@@ -626,6 +628,7 @@ const creators: Creator[] = [
     categories: ["ASMR", "Bienestar"],
     tags: ["asmr", "tarot", "ritual", "calma", "SFW"],
     cover: "mystic",
+    image: CREATOR_PORTRAITS.aurora,
     avatarTint: "#7a5c9e",
     status: "approved",
     verified: true,
@@ -846,6 +849,7 @@ const creators: Creator[] = [
     categories: ["Lifestyle", "Bilingüe"],
     tags: ["lifestyle", "moda", "viajes", "bilingüe", "bts"],
     cover: "vale",
+    image: CREATOR_PORTRAITS.isabella,
     avatarTint: "#d4687a",
     status: "approved",
     verified: true,
@@ -1081,6 +1085,7 @@ const creators: Creator[] = [
     categories: ["Editorial", "Lifestyle"],
     tags: ["editorial", "slow-living", "europa", "objetos", "viajes"],
     cover: "marea",
+    image: CREATOR_PORTRAITS.selene,
     avatarTint: "#5a8f8a",
     status: "approved",
     verified: true,

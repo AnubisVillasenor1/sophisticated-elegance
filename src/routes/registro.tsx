@@ -7,9 +7,9 @@ import { Badge, Button, Field, Input, Select, Textarea } from "@/components/lux/
 import { BrandLockup } from "@/components/site/brand";
 import { LegalConsent, type LegalConsentValue } from "@/components/site/LegalConsent";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { recordLegalAcceptance } from "@/lib/auth/auth.functions";
+import { recordLegalEvidence, savePendingLegalEvidence } from "@/lib/auth/legal-receipts";
 import { useSession } from "@/lib/auth/SessionProvider";
-import { LEGAL_BY_ID, REQUIRED_DOCS_CREATOR, REQUIRED_DOCS_FAN } from "@/lib/legal";
+import { LEGAL_BY_ID, LEGAL_VERSION, REQUIRED_DOCS_CREATOR, REQUIRED_DOCS_FAN } from "@/lib/legal";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -123,24 +123,31 @@ function RegisterPage() {
         return;
       }
 
+      const version =
+        legal.docIds
+          .map((docId) => LEGAL_BY_ID.get(docId)?.version)
+          .filter((value): value is string => Boolean(value))
+          .join(",") || LEGAL_VERSION;
+
       if (result.needsConfirmation) {
+        // Todavía no hay sesión: se guarda la evidencia y se envía al servidor
+        // en el primer inicio de sesión tras confirmar el correo.
+        savePendingLegalEvidence({ email, docIds: legal.docIds, version });
         toast.success(result.message);
         navigate({ to: "/entrar" });
         return;
       }
 
-      // Evidencia de aceptación legal: la registra el servidor con la identidad
-      // verificada. Best-effort: si falla, la cuenta ya está creada y se avisa.
-      try {
-        const version = legal.docIds
-          .map((docId) => LEGAL_BY_ID.get(docId)?.version)
-          .filter((value): value is string => Boolean(value))
-          .join(",");
-        await recordLegalAcceptance({
-          data: { docIds: legal.docIds, version: version || "desconocida" },
+      // Evidencia de aceptación legal: la firma el servidor con la identidad
+      // verificada. Si falla, la cuenta ya está creada y se avisa sin bloquear.
+      if (result.userId) {
+        const evidence = await recordLegalEvidence({
+          userId: result.userId,
+          docIds: legal.docIds,
+          version,
+          channel: "registro",
         });
-      } catch {
-        // El registro no se bloquea por la evidencia secundaria.
+        if (!evidence.ok) toast.error(evidence.message);
       }
 
       toast.success(result.message);

@@ -44,6 +44,7 @@ export function CreatorCard({ creator, compact = false }: { creator: Creator; co
       >
         <Cover
           kind={creator.cover}
+          src={creator.image}
           alt={`Portada de ${creator.name}`}
           className={cn("w-full", compact ? "aspect-[16/10]" : "aspect-[4/5]")}
         >

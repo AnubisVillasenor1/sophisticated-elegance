@@ -3,8 +3,9 @@
   "service": "xclusive",
   "auth": "supabase",
   "mode": "live",
-  "legalVersion": "2026.1",
+  "features": ["password-recovery", "totp-mfa", "server-signed-legal-receipts"],
+  "legalVersion": "2026.11-demo",
   "adultContent": "disabled",
   "payments": "simulated",
-  "note": "Identidad y permisos se verifican en el servidor con Supabase Auth. Comercio, pagos, retiros y verificación de edad certificada siguen siendo DEMO o dependen de terceros."
+  "note": "Identidad, recuperacion, segundo factor y evidencia legal se verifican en el servidor con Supabase Auth. Comercio, pagos, retiros y verificacion de edad certificada siguen siendo DEMO o dependen de terceros."
 }

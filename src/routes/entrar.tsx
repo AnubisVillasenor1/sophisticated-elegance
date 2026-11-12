@@ -25,10 +25,11 @@ export const Route = createFileRoute("/entrar")({
 
 function LoginPage() {
   const { login } = useApp();
-  const { mode, signIn } = useSession();
+  const { mode, signIn, verifyMfa, mfaPending } = useSession();
   const navigate = useNavigate();
   const [email, setEmail] = useState(demoMode ? "fan@xclusive.demo" : "");
   const [password, setPassword] = useState(demoMode ? "demo1234" : "");
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -52,10 +53,10 @@ function LoginPage() {
 
     setPending(true);
     try {
-      const result = await signIn(email, password);
+      const result = mfaPending ? await verifyMfa(code) : await signIn(email, password);
       if (!result.ok) {
         setError(result.message);
-        toast.error(result.message);
+        if (!result.needsMfa) toast.error(result.message);
         return;
       }
       toast.success(result.message);
@@ -138,26 +139,47 @@ function LoginPage() {
             </p>
 
             <div className="mt-6 space-y-4">
-              <Field label="Correo" required>
-                <Input
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@correo.com"
-                  required
-                />
-              </Field>
-              <Field label="Contraseña" required>
-                <Input
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mínimo 8 caracteres"
-                  required
-                />
-              </Field>
+              {mfaPending ? (
+                <Field label="Código de verificación" required>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/[^\d]/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    maxLength={6}
+                    required
+                    autoFocus
+                  />
+                  <span className="mt-1.5 block text-[0.62rem] leading-relaxed text-muted-foreground">
+                    Abre tu aplicación de autenticación e introduce el código de 6 dígitos.
+                  </span>
+                </Field>
+              ) : (
+                <>
+                  <Field label="Correo" required>
+                    <Input
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu@correo.com"
+                      required
+                    />
+                  </Field>
+                  <Field label="Contraseña" required>
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Mínimo 8 caracteres"
+                      required
+                    />
+                  </Field>
+                </>
+              )}
               {error ? (
                 <p
                   role="alert"
@@ -167,18 +189,26 @@ function LoginPage() {
                 </p>
               ) : null}
               <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? "Verificando…" : "Entrar"} <ArrowRight className="h-4 w-4" />
+                {pending ? "Verificando…" : mfaPending ? "Verificar código" : "Entrar"}{" "}
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
 
-            <div className="mt-5 flex items-center justify-between text-[0.7rem] text-muted-foreground">
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-2 text-[0.7rem] text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <ShieldCheck className="h-3.5 w-3.5 text-success" />
                 {mode === "demo" ? "Sesión local DEMO" : "Sesión verificada"}
               </span>
-              <Link to="/registro" className="text-pearl underline-offset-4 hover:underline">
-                Crear cuenta
-              </Link>
+              <span className="flex flex-wrap items-center gap-3">
+                {mode === "live" ? (
+                  <Link to="/recuperar" className="text-pearl underline-offset-4 hover:underline">
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                ) : null}
+                <Link to="/registro" className="text-pearl underline-offset-4 hover:underline">
+                  Crear cuenta
+                </Link>
+              </span>
             </div>
             <p className="mt-4 text-[0.62rem] leading-relaxed text-muted-foreground/80">
               Al entrar aceptas los{" "}
