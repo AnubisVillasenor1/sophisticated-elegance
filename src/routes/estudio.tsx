@@ -26,7 +26,7 @@ import {
   Wallet,
   Wand2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -62,6 +62,7 @@ import {
   monthlySeries,
 } from "@/lib/selectors";
 import { AUTH_MODE } from "@/lib/auth/mode";
+import { getCreatorEarnings, type CreatorEarnings } from "@/lib/payments/operations.functions";
 import { useApp, useDashboardData, useMyCreator } from "@/lib/store";
 import type { CoverKey, Creator, LiveRoom, PostVisibility, Tier } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -376,6 +377,54 @@ function StudioDashboard({ creator }: { creator: Creator }) {
 /* Resumen                                                             */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Saldo real de la creadora, calculado en el servidor desde los pedidos
+ * pagados. En DEMO no se muestra: el saldo local es de demostración y no debe
+ * confundirse con dinero devengado.
+ */
+function ServerEarnings() {
+  const { state } = useApp();
+  const [data, setData] = useState<CreatorEarnings | null>(null);
+
+  useEffect(() => {
+    if (AUTH_MODE !== "live") return;
+    let alive = true;
+    getCreatorEarnings()
+      .then((result) => {
+        if (alive) setData(result);
+      })
+      .catch(() => {
+        if (alive) setData(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (AUTH_MODE !== "live" || !data) return null;
+
+  return (
+    <SectionCard
+      title="Libro de ventas (servidor)"
+      description="Pedidos pagados y conciliados. El saldo no es retirable hasta contar con PSP y verificación de identidad."
+    >
+      {!data.available ? (
+        <p className="text-xs text-muted-foreground">{data.reason ?? "No disponible."}</p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <DataRow label="Pedidos pagados" value={formatNumber(data.orders)} />
+          <DataRow label="Bruto cobrado" value={formatMoney(data.grossMXN, state.currency)} />
+          <DataRow
+            label="Comisión plataforma"
+            value={formatMoney(data.platformFeeMXN, state.currency)}
+          />
+          <DataRow label="Neto devengado" value={formatMoney(data.netMXN, state.currency)} />
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
 function ResumenTab({
   creator,
   net,
@@ -429,6 +478,8 @@ function ResumenTab({
           icon={<Heart className="h-4 w-4" />}
         />
       </div>
+
+      <ServerEarnings />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <SectionCard

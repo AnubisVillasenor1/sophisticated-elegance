@@ -26,7 +26,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -52,6 +52,10 @@ import {
 } from "@/components/lux/ui";
 import { demoMode } from "@/lib/auth/demo-accounts";
 import { formatDate, formatDateTime, formatMoney, formatNumber } from "@/lib/format";
+import {
+  getOperationsOverview,
+  type OperationsOverview,
+} from "@/lib/payments/operations.functions";
 import { platformMetrics } from "@/lib/selectors";
 import { useApp } from "@/lib/store";
 import type { Application, Creator, DataRequest, Payout, Report, Settings } from "@/lib/types";
@@ -242,8 +246,119 @@ function ResumenTab() {
   const pendingApps = state.applications.filter((a) => a.status === "pending");
   const openReports = state.reports.filter((r) => r.status !== "resolved");
 
+  const [ops, setOps] = useState<OperationsOverview | null>(null);
+  const [opsFailed, setOpsFailed] = useState(false);
+
+  useEffect(() => {
+    if (demoMode) return;
+    let alive = true;
+    getOperationsOverview()
+      .then((overview) => {
+        if (alive) setOps(overview);
+      })
+      .catch(() => {
+        if (alive) setOpsFailed(true);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   return (
     <div className="space-y-5">
+      {!demoMode ? (
+        <SectionCard
+          title="Operación en servidor"
+          description="Datos reales de la base de datos, no del navegador."
+        >
+          {opsFailed ? (
+            <p className="text-xs text-muted-foreground">
+              No se pudieron leer las métricas. Revisa la credencial de servicio.
+            </p>
+          ) : !ops ? (
+            <p className="text-xs text-muted-foreground">Consultando…</p>
+          ) : !ops.available ? (
+            <p className="text-xs text-muted-foreground">{ops.reason ?? "No disponible."}</p>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <StatCard
+                  label="Cuentas"
+                  value={formatNumber(ops.profiles)}
+                  hint="Perfiles en Supabase."
+                  icon={<Users className="h-4 w-4" />}
+                />
+                <StatCard
+                  label="Pedidos pagados"
+                  value={formatNumber(ops.orders.paid)}
+                  hint={`${ops.orders.pending} pendientes de ${ops.orders.total}.`}
+                  icon={<Receipt className="h-4 w-4" />}
+                />
+                <StatCard
+                  label="Volumen cobrado"
+                  value={formatMoney(ops.gmvMXN, state.currency)}
+                  hint="Bruto de pedidos pagados."
+                />
+                <StatCard
+                  label="Por pagar a creadoras"
+                  value={formatMoney(ops.creatorPayableMXN, state.currency)}
+                  hint="Neto devengado en el libro mayor."
+                  icon={<Wallet className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <DataRow
+                  label="Ingreso de plataforma"
+                  value={formatMoney(ops.platformRevenueMXN, state.currency)}
+                />
+                <DataRow label="Recibos legales" value={formatNumber(ops.receipts)} />
+                <DataRow label="Accesos vigentes" value={formatNumber(ops.entitlements)} />
+              </div>
+
+              <div>
+                <p className="eyebrow">Últimos eventos de auditoría</p>
+                {ops.audit.length === 0 ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Sin eventos registrados todavía.
+                  </p>
+                ) : (
+                  <ul className="mt-2 space-y-1.5">
+                    {ops.audit.map((event, index) => (
+                      <li
+                        key={`${event.action}-${index}`}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-white/[0.02] px-3 py-2 text-[0.68rem]"
+                      >
+                        <span className="truncate text-pearl">{event.action}</span>
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <Badge
+                            tone={
+                              event.outcome === "ok"
+                                ? "success"
+                                : event.outcome === "denied"
+                                  ? "warning"
+                                  : "signal"
+                            }
+                          >
+                            {event.outcome}
+                          </Badge>
+                          {formatDateTime(event.createdAt)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <p className="text-[0.62rem] leading-relaxed text-muted-foreground">
+                Bóveda privada:{" "}
+                {ops.vaultObjects === null ? "no verificable" : `${ops.vaultObjects} objeto(s)`}.
+                Las cifras salen de <code>xclusive_orders</code> con estado <code>paid</code>.
+              </p>
+            </div>
+          )}
+        </SectionCard>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Miembros activos"
