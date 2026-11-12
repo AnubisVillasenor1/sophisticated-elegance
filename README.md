@@ -5,7 +5,16 @@ Club editorial privado para creadoras independientes: membresías, clips, salone
 **Sitio en producción:** https://sophisticated-elegance.vercel.app
 **Repositorio:** https://github.com/AnubisVillasenor1/sophisticated-elegance
 
-> **Estado real:** plataforma funcional en **Modo DEMO**. No hay cobros, retiros ni contenido adulto. Los precios, comisiones y saldos son datos de demostración claramente etiquetados. La monetización real depende de aprobación del PSP, KYC/AML y verificación de edad certificada.
+> **Estado real:** identidad y permisos ya se resuelven en el servidor con Supabase Auth. El comercio, los pagos, los retiros y la verificación de edad certificada **siguen siendo DEMO o dependen de terceros**. Los precios, comisiones y saldos son datos de demostración claramente etiquetados.
+
+### Autenticación (remediación P0)
+
+- **LIVE (por defecto):** registro y acceso con Supabase Auth. La sesión se verifica en cada server function con bearer token. El rol (`fan`, `creator`, `admin`) lo resuelve el servidor con `ADMIN_EMAILS` / `CREATOR_EMAILS` y `app_metadata`; `user_metadata` nunca concede rol. Sin allowlist no hay administradores.
+- **DEMO:** solo en builds explícitos (`npm run dev:demo` / `npm run build:demo`). Las cuentas y su contraseña no existen en builds LIVE.
+- **Fail closed:** sin configuración de Supabase no se establece sesión; sin sesión válida las server functions rechazan la operación.
+- **Auditoría:** las acciones sensibles emiten eventos `xclusive.audit` con actor, acción y resultado.
+
+El detalle, la matriz antes/después y lo que sigue bloqueado están en [`docs/AUDITORIA-REMEDIACION.md`](docs/AUDITORIA-REMEDIACION.md). El despliegue canónico es Vercel: [`DEPLOY.md`](DEPLOY.md).
 
 ---
 

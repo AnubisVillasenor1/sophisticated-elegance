@@ -1,162 +1,116 @@
-# Despliegue de Xclusive (Modo DEMO)
+# Despliegue de Xclusive
 
-Este repositorio contiene un prototipo funcional de plataforma de creadoras. Todo el estado vive en el navegador (`localStorage`): no hay base de datos, pasarela de pagos, verificación de identidad ni transferencias reales.
+**Destino canónico: Vercel.**
+Sitio: <https://sophisticated-elegance.vercel.app>
+Proyecto: `prj_xtn4fMajuBdI5NKfnTDbNmuCFaNn` (team `team_QbYxBq0wdGuWTaCKV6U5TL2N`).
 
-> **Importante:** el despliegue publica la experiencia DEMO. No habilita cobros, retiros ni contenido adulto. Antes de operar con dinero real hay que completar el [plan de producción](docs/PRODUCCION.md).
+Cloudflare Workers se conserva como alternativa histórica de Nitro, pero **no es
+el entorno canónico ni se valida en esta guía**.
 
-## Requisitos
+---
 
-- Node.js 22 o superior (probado con Node 26 y npm 11).
-- npm (el repositorio también conserva `bun.lock`, pero los comandos de esta guía usan npm).
-- Cuenta de Cloudflare con Workers habilitado para publicar.
-- Wrangler autenticado (`npx wrangler login`) o variables `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` en CI.
+## Modos de autenticación
 
-## 1. Verificar en local
+| Modo | Cómo se activa | Qué hace |
+| ---- | -------------- | -------- |
+| **LIVE** (por defecto) | Sin flag, o `VITE_DEMO_MODE=false` | Supabase Auth, sesión verificada por servidor, roles por allowlist. Sin credenciales demo. |
+| **DEMO** | `npm run dev:demo` / `npm run build:demo`, o `VITE_DEMO_MODE=true` | Cuentas locales de `src/lib/seed.ts`. Todo el comercio es simulado. |
+
+El modo se fija en **tiempo de compilación**. Un build LIVE no puede activar el
+modo DEMO desde el navegador.
+
+---
+
+## 1. Verificación local
 
 ```sh
 npm ci
+cp .env.example .env      # rellena los valores reales
 npm run dev
 ```
 
-Abre `http://localhost:8080`. La compilación de producción y las pruebas deben pasar antes de publicar:
+Comprobaciones obligatorias antes de publicar:
 
 ```sh
-npm run build
-npx tsc --noEmit
-npx vitest run
-```
-
-Salida esperada del build: `.output/` con el worker de Cloudflare y los assets estáticos.
-
-Comprobaciones automáticas (también corren en GitHub Actions, `.github/workflows/ci.yml`):
-
-```sh
-npx tsc --noEmit
+npm run typecheck
 npm test
 npm run lint
 npm run build
 ```
 
-Archivos de producción incluidos en `public/`:
-
-- `_headers`: CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y caché de assets.
-- `robots.txt` y `sitemap.xml`: indexación pública; `/admin`, `/estudio`, `/boveda`, `/mensajes` y `/cuenta` quedan fuera.
-- `manifest.webmanifest`, `icon-192.png`, `icon-512.png`: instalación como aplicación.
-- `og.png`: tarjeta social 1200×630 usada por Open Graph y Twitter.
-- `health.json`: estado del servicio y declaración de Modo DEMO.
-
-Los iconos y la tarjeta social se regeneran con `powershell -File scripts/generate-brand-assets.ps1`.
-
-## 2. Cuentas de demostración
-
-| Rol            | Correo                    | Contraseña |
-| -------------- | ------------------------- | ---------- |
-| Miembro        | `fan@xclusive.demo`       | `demo1234` |
-| Creadora       | `valentina@xclusive.demo` | `demo1234` |
-| Administración | `admin@xclusive.demo`     | `demo1234` |
-
-Los datos se guardan por navegador. Para volver al estado inicial entra a **Mi cuenta → Datos → Reiniciar DEMO** o borra el almacenamiento local del sitio.
-
-## 3. Publicar en Cloudflare Workers
-
-El build usa el preset `cloudflare-module` de Nitro y genera la configuración del worker en `.output/server/wrangler.json`.
+Build de demostración (opcional):
 
 ```sh
-npm ci
-npm run build
-npx nitro deploy --prebuilt
+npm run build:demo
 ```
 
-Alternativa equivalente con Wrangler:
+---
+
+## 2. Variables de entorno
+
+### Públicas (build)
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PROJECT_ID`
+- `VITE_SITE_URL`
+- `VITE_DEMO_MODE` — debe ser `false` en producción.
+
+### Servidor (runtime)
+
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_PROJECT_ID`
+- `ADMIN_EMAILS` — correos separados por comas.
+- `CREATOR_EMAILS` — correos separados por comas.
+- `SUPABASE_SERVICE_ROLE_KEY` — solo si se habilitan borrado de cuenta y panel
+  de administración. **Nunca** en el cliente ni con prefijo `VITE_`.
+
+Sin `ADMIN_EMAILS` no hay administradores. Es un fallo cerrado deliberado.
+
+---
+
+## 3. Publicar en Vercel
 
 ```sh
-npm run build
-npx wrangler deploy --config .output/server/wrangler.json
-```
-
-El nombre del worker se deriva del repositorio (`anubisvillasenor1-sophisticated-elegance`). El despliegue imprime la URL `https://<worker>.<cuenta>.workers.dev`.
-
-> Este repositorio fue creado con Lovable y conserva las integraciones de Supabase (`src/integrations/supabase/`, `src/hooks/use-session.ts`) y las migraciones de `drizzle/` y `supabase/`. El Modo DEMO no las usa: la sesión, el catálogo y las aceptaciones legales viven en `localStorage`. No edites `drizzle/` ni `supabase/migrations/` a mano; cualquier cambio de esquema se solicita desde Lovable.
-
-### Vista previa sin cuenta de Cloudflare
-
-Para una demostración inmediata, Wrangler puede publicar en una cuenta temporal:
-
-```sh
-npm run build
-npx wrangler deploy --temporary --config .output/server/wrangler.json
-```
-
-La URL resultante es pública y temporal; no sirve como dominio definitivo ni garantiza persistencia. Para producción usa una cuenta propia autenticada.
-
-### Dominio propio
-
-1. En Cloudflare → Workers & Pages → el worker desplegado → **Settings → Domains & Routes**.
-2. Agrega el dominio o subdominio (por ejemplo `xclusive.tamvonline.network`).
-3. Espera la emisión del certificado y verifica que el dominio raíz redirija a `https://`.
-
-No se necesitan variables de entorno para el Modo DEMO. No agregues secretos al repositorio: en producción se configuran como _Secrets_ del worker o del proveedor.
-
-## 4. Publicar desde GitHub
-
-Dos rutas válidas:
-
-- **Lovable:** publicar desde el editor conectado. Los commits de este repositorio se sincronizan con Lovable; no reescribas el historial publicado.
-- **Cloudflare Workers Builds:** conecta el repositorio y usa:
-  - Build command: `npm ci && npm run build`
-  - Deploy command: `npx wrangler deploy --config .output/server/wrangler.json`
-  - Variables: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-
-Mantén la rama en estado compilable: cada push puede sincronizarse con Lovable.
-
-## 5. Publicar en Vercel (alternativa)
-
-Vercel no ejecuta el preset de Cloudflare, así que el build se cambia con una variable de entorno, sin tocar `vite.config.ts`:
-
-```sh
-npm ci
-NITRO_PRESET=vercel npm run build
+npx vercel pull --yes --environment=production
+npx vercel build --prod
 npx vercel deploy --prebuilt --prod
 ```
 
-En PowerShell: `$env:NITRO_PRESET='vercel'; npm run build`.
+El build usa el preset `vercel` y escribe `.vercel/output/`. Las cabeceras de
+seguridad se aplican desde `vite.config.ts` (`routeRules`) y `public/_headers`.
 
-`vercel.json` fija el mismo comando para los despliegues automáticos desde GitHub. Las cabeceras de seguridad viven en `vite.config.ts` (`nitro.routeRules`): en un build con Build Output API, Vercel ignora las `headers` de `vercel.json` y no lee `public/_headers`, así que Nitro las escribe en `.vercel/output/config.json` (`Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, caché de assets y `no-store` para `health.json`).
+### Configurar variables
 
-El dominio canónico y la imagen social salen de `VITE_SITE_URL` (por defecto `https://xclusive.tamvonline.network`). En el proyecto de Vercel está definido como `https://sophisticated-elegance.vercel.app` para que `canonical`, `og:url` y `og:image` apunten al sitio publicado; al desplegar en Cloudflare, configúralo con el dominio propio. `public/sitemap.xml` y `public/robots.txt` son estáticos y conservan el dominio de producción: actualízalos cuando cambie el dominio definitivo.
+```sh
+npx vercel env add ADMIN_EMAILS production
+npx vercel env add CREATOR_EMAILS production
+npx vercel env add SUPABASE_SERVICE_ROLE_KEY production
+```
 
-Sitio publicado: https://sophisticated-elegance.vercel.app
+Para las variables `VITE_*`, usa el panel del proyecto o `vercel env add` y
+**redespliega** después de cambiarlas: se incorporan en compilación.
 
-Cada push a `main` dispara un build en Vercel. La configuración de Cloudflare (`wrangler.jsonc`, `.output/server/wrangler.json`) sigue siendo la vía principal; Vercel es la demo pública mientras no haya credenciales de Cloudflare.
+---
 
-## 6. Verificación posterior al despliegue
+## 4. Verificación posterior
 
-- [ ] `/` carga el landing y el aviso de edad aparece en una sesión nueva.
-- [ ] Aceptar el aviso guarda la decisión y muestra el banner de cookies.
-- [ ] `/legal` lista los nueve documentos y cada uno abre sin error.
-- [ ] `/explorar`, `/clips`, `/salones` y `/creadoras` muestran contenido.
-- [ ] `/entrar` permite entrar con las tres cuentas DEMO.
-- [ ] Miembro: membresía, compra, propina, bóveda, mensajes y ARCO.
-- [ ] Creadora: publicar, editar plan, abrir salón, ver ingresos y solicitar retiro DEMO.
-- [ ] Administración: aprobar solicitud, resolver reporte, resolver ARCO y marcar retiro.
-- [ ] Los importes muestran el sello DEMO y no se solicita tarjeta.
-- [ ] El contenido adulto permanece deshabilitado.
-- [ ] `/auth` redirige a `/entrar` y `/membresias` redirige a `/explorar`.
-- [ ] `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`, `/og.png` y `/health.json` responden 200.
-- [ ] Las cabeceras de seguridad de `_headers` llegan en la respuesta del dominio (`Strict-Transport-Security`, `X-Content-Type-Options`).
-- [ ] La intro cinematográfica aparece una vez por sesión, se puede saltar con Escape y no se muestra con `prefers-reduced-motion`.
+1. `GET /health.json` responde 200.
+2. `/entrar` no muestra cuentas DEMO y no contiene `demo1234` en el bundle.
+3. Un registro nuevo recibe correo de confirmación de Supabase.
+4. Un correo fuera de `ADMIN_EMAILS` no puede abrir `/admin` como administrador.
+5. `/cuenta`, `/estudio`, `/admin` y `/boveda` responden 200 o redirigen de forma
+   controlada, sin errores 500.
+6. El log del servidor muestra eventos `xclusive.audit` en las acciones sensibles.
 
-## 7. Reversión
+---
 
-Cloudflare conserva las versiones del worker. En **Workers → Deployments** selecciona la versión anterior y usa **Rollback**. Para retirar el sitio, elimina la ruta del dominio y el worker; no borres el repositorio ni el historial de Git.
+## 5. Limitaciones conocidas
 
-## 8. Límites conocidos del DEMO
-
-- Sin backend, autenticación real, recuperación de contraseña ni sesiones de servidor.
-- Sin PSP, facturación, impuestos, conciliación, retiros ni obligación de pago.
-- Sin KYC, verificación de edad certificada ni firma electrónica.
-- Sin almacenamiento de medios ni URLs firmadas; las portadas son imágenes locales o degradados CSS.
-- Sin IA conectada: las sugerencias son heurísticas locales declaradas como simulación.
-- Los hashes de aceptación son deterministas y no criptográficos.
-
-Todo lo anterior está desarrollado como módulos funcionales de interfaz y se documenta en [docs/PRODUCCION.md](docs/PRODUCCION.md).
+- No hay migraciones automáticas ni smoke tests posteriores al despliegue.
+- No hay rollback automatizado; se revierte con el panel de Vercel.
+- La auditoría y la aceptación legal quedan en logs del servidor porque aún no
+  existen las tablas `audit_log` y `legal_acceptances`.
+- El comercio, los pagos y la verificación de edad siguen siendo DEMO o
+  dependen de terceros. Ver [`docs/AUDITORIA-REMEDIACION.md`](docs/AUDITORIA-REMEDIACION.md).

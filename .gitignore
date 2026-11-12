@@ -35,5 +35,12 @@ dist-ssr
 .vercel
 
 # Secretos locales (nunca al repositorio)
-.env.pull
-.env*.local
+.env
+.env.*
+!.env.example
+!.env.demo
+
+# Credenciales y claves privadas
+*.pem
+*.key
+.secrets/

@@ -23,7 +23,21 @@ const securityHeaders = {
     "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline'; connect-src 'self' https:;",
 };
 
+// `vite build --mode demo` define el modo DEMO en tiempo de compilación. Sin
+// ese flag (y sin VITE_DEMO_MODE=true) el build es LIVE y elimina las cuentas
+// y credenciales de demostración del bundle.
+const modeFlagIndex = process.argv.indexOf("--mode");
+const cliMode = modeFlagIndex === -1 ? undefined : process.argv[modeFlagIndex + 1];
+const demoModeDefine = JSON.stringify(
+  process.env["VITE_DEMO_MODE"] === "true" || cliMode === "demo" ? "true" : "false",
+);
+
 export default defineConfig({
+  vite: {
+    define: {
+      "import.meta.env.VITE_DEMO_MODE": demoModeDefine,
+    },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

@@ -44,7 +44,8 @@ import {
   legalTitle,
 } from "@/lib/legal";
 import { fanPurchases, fanSubscriptions, getCreator, userNotifications } from "@/lib/selectors";
-import { DEMO_ACCOUNTS, hasAcceptedCurrent, useApp } from "@/lib/store";
+import { DEMO_ACCOUNTS, demoMode } from "@/lib/auth/demo-accounts";
+import { hasAcceptedCurrent, useApp } from "@/lib/store";
 import type { Currency, DataRequest } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -312,24 +313,26 @@ function PerfilTab() {
           </SectionCard>
         )}
 
-        <SectionCard title="Cuentas de demostración" description="Para probar cada rol.">
-          <div className="space-y-2">
-            {DEMO_ACCOUNTS.map((account) => (
-              <div
-                key={account.email}
-                className="rounded-lg border border-hairline bg-white/[0.02] p-3"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs text-pearl">{account.role}</p>
-                  <Badge tone="outline">{account.password}</Badge>
+        {demoMode ? (
+          <SectionCard title="Cuentas de demostración" description="Para probar cada rol.">
+            <div className="space-y-2">
+              {DEMO_ACCOUNTS.map((account) => (
+                <div
+                  key={account.email}
+                  className="rounded-lg border border-hairline bg-white/[0.02] p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-pearl">{account.role}</p>
+                    <Badge tone="outline">{account.password}</Badge>
+                  </div>
+                  <p className="mt-1 truncate font-mono text-[0.63rem] text-muted-foreground">
+                    {account.email}
+                  </p>
                 </div>
-                <p className="mt-1 truncate font-mono text-[0.63rem] text-muted-foreground">
-                  {account.email}
-                </p>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
+              ))}
+            </div>
+          </SectionCard>
+        ) : null}
       </div>
     </div>
   );

@@ -50,6 +50,7 @@ import {
   Textarea,
   btn,
 } from "@/components/lux/ui";
+import { demoMode } from "@/lib/auth/demo-accounts";
 import { formatDate, formatDateTime, formatMoney, formatNumber } from "@/lib/format";
 import { platformMetrics } from "@/lib/selectors";
 import { useApp } from "@/lib/store";
@@ -107,7 +108,11 @@ function AdminPage() {
         <EmptyState
           icon={<Shield className="h-6 w-6" />}
           title="Esta puerta no es para tu rol."
-          description="Tu cuenta es de miembro o creadora. Usa la cuenta admin@xclusive.demo para probar las herramientas de administración."
+          description={
+            demoMode
+              ? "Tu cuenta es de miembro o creadora. Usa la cuenta admin@xclusive.demo para probar las herramientas de administración."
+              : "Tu cuenta es de miembro o creadora. El acceso de administración se concede desde el servidor con la allowlist de correos."
+          }
           action={
             <Link
               to={user.role === "creator" ? "/estudio" : "/cuenta"}

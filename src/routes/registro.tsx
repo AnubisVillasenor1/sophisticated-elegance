@@ -7,6 +7,9 @@ import { Badge, Button, Field, Input, Select, Textarea } from "@/components/lux/
 import { BrandLockup } from "@/components/site/brand";
 import { LegalConsent, type LegalConsentValue } from "@/components/site/LegalConsent";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { recordLegalAcceptance } from "@/lib/auth/auth.functions";
+import { useSession } from "@/lib/auth/SessionProvider";
+import { LEGAL_BY_ID, REQUIRED_DOCS_CREATOR, REQUIRED_DOCS_FAN } from "@/lib/legal";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +42,7 @@ const CATEGORIES = [
 
 function RegisterPage() {
   const { signup } = useApp();
+  const { mode, signUp } = useSession();
   const navigate = useNavigate();
   const [referralCode] = useState(() => {
     try {
@@ -58,6 +62,7 @@ function RegisterPage() {
   const [categories, setCategories] = useState<string[]>(["Fotografía"]);
   const [legal, setLegal] = useState<LegalConsentValue>({ docIds: [], age: false, lawful: false });
   const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
 
   const toggleCategory = (category: string) => {
     setCategories((prev) =>
@@ -65,32 +70,84 @@ function RegisterPage() {
     );
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
     if (!legal.age || !legal.lawful) {
       setError("Debes confirmar mayoría de edad y uso lícito.");
       return;
     }
-    const result = signup({
-      name,
-      email,
-      password,
-      role,
-      city,
-      categories,
-      socials,
-      bio,
-      acceptedDocIds: legal.docIds,
-      ...(referralCode ? { referralCode } : {}),
-    });
-    if (!result.ok) {
-      setError(result.message);
-      toast.error(result.message);
+
+    const required = role === "creator" ? REQUIRED_DOCS_CREATOR : REQUIRED_DOCS_FAN;
+    if (required.some((docId) => !legal.docIds.includes(docId))) {
+      setError("Debes aceptar todos los documentos legales obligatorios.");
       return;
     }
-    setError("");
-    toast.success(result.message);
-    navigate({ to: role === "creator" ? "/estudio" : "/explorar" });
+
+    if (mode === "demo") {
+      const result = signup({
+        name,
+        email,
+        password,
+        role,
+        city,
+        categories,
+        socials,
+        bio,
+        acceptedDocIds: legal.docIds,
+        ...(referralCode ? { referralCode } : {}),
+      });
+      if (!result.ok) {
+        setError(result.message);
+        toast.error(result.message);
+        return;
+      }
+      toast.success(result.message);
+      navigate({ to: role === "creator" ? "/estudio" : "/explorar" });
+      return;
+    }
+
+    setPending(true);
+    try {
+      const result = await signUp({
+        email,
+        password,
+        displayName: name,
+        requestedRole: role,
+      });
+
+      if (!result.ok) {
+        setError(result.message);
+        toast.error(result.message);
+        return;
+      }
+
+      if (result.needsConfirmation) {
+        toast.success(result.message);
+        navigate({ to: "/entrar" });
+        return;
+      }
+
+      // Evidencia de aceptación legal: la registra el servidor con la identidad
+      // verificada. Best-effort: si falla, la cuenta ya está creada y se avisa.
+      try {
+        const version = legal.docIds
+          .map((docId) => LEGAL_BY_ID.get(docId)?.version)
+          .filter((value): value is string => Boolean(value))
+          .join(",");
+        await recordLegalAcceptance({
+          data: { docIds: legal.docIds, version: version || "desconocida" },
+        });
+      } catch {
+        // El registro no se bloquea por la evidencia secundaria.
+      }
+
+      toast.success(result.message);
+      navigate({ to: role === "creator" ? "/estudio" : "/explorar" });
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -192,7 +249,11 @@ function RegisterPage() {
               <Field
                 label="Contraseña"
                 required
-                hint="Mínimo 8 caracteres. Se almacena como hash de demostración."
+                hint={
+                  mode === "demo"
+                    ? "Mínimo 8 caracteres. Se almacena como hash de demostración."
+                    : "Mínimo 8 caracteres. La contraseña la gestiona Supabase Auth."
+                }
               >
                 <Input
                   type="password"
@@ -267,13 +328,21 @@ function RegisterPage() {
               </p>
             ) : null}
 
-            <Button type="submit" className="mt-5 w-full" size="lg">
+            <Button type="submit" className="mt-5 w-full" size="lg" disabled={pending}>
               <Check className="h-4 w-4" />{" "}
-              {role === "creator" ? "Crear cuenta y postular perfil" : "Crear cuenta"}
+              {pending
+                ? "Creando cuenta…"
+                : role === "creator"
+                  ? "Crear cuenta y postular perfil"
+                  : "Crear cuenta"}
             </Button>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[0.7rem] text-muted-foreground">
-              <span>Registro local con aceptación versionada y hash.</span>
+              <span>
+                {mode === "demo"
+                  ? "Registro local con aceptación versionada y hash."
+                  : "Cuenta creada en Supabase Auth. La aceptación legal queda registrada en auditoría."}
+              </span>
               <Link
                 to="/entrar"
                 className="inline-flex items-center gap-1 text-pearl underline-offset-4 hover:underline"

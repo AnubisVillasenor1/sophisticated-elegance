@@ -1440,7 +1440,9 @@ const acceptance = (
 
 const fanDocs = ["terminos", "privacidad", "cookies", "contenido"];
 const creatorDocs = [...fanDocs, "contrato-creadoras", "comisiones"];
-const DEMO_PASS = demoHash("demo1234");
+// Hash precalculado de la contraseña DEMO. No se guarda el texto plano en el
+// bundle; el login real está bloqueado fuera de builds de demostración.
+const DEMO_PASS = "1f4a8392c4467bf42938a4f14fb7644c";
 
 const demoFan: User = {
   id: "u-fan-demo",

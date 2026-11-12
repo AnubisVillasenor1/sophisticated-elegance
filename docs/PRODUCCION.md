@@ -2,6 +2,8 @@
 
 Documento de referencia para convertir el prototipo DEMO en una plataforma operativa. **No es una migración ejecutable.** Las reglas de Lovable prohíben editar `supabase/migrations/` o `drizzle/`: cualquier cambio real de esquema debe solicitarse desde el editor de Lovable o aprobarse con el equipo de infraestructura.
 
+> **Estado tras la remediación P0:** la identidad y los roles ya se resuelven en el servidor con Supabase Auth (ver [`AUDITORIA-REMEDIACION.md`](AUDITORIA-REMEDIACION.md)). Este documento describe lo que aún falta para operar con dinero y contenido privado: persistencia transaccional, PSP, ledger, KYC y verificación de edad certificada.
+
 ## 1. Principios
 
 1. **Dinero y contenido adulto son dominios de alto riesgo.** Se habilitan solo después de completar los controles de la sección 10.

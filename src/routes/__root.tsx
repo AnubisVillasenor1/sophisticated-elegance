@@ -17,6 +17,7 @@ import { CinematicIntro } from "../components/site/CinematicIntro";
 import { CookieConsent } from "../components/site/CookieConsent";
 import { PlatformTourProvider } from "../components/site/PlatformTour";
 import { Toaster } from "../components/ui/sonner";
+import { SessionProvider } from "../lib/auth/SessionProvider";
 import { AppProvider } from "../lib/store";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -179,15 +180,17 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <PlatformTourProvider>
-          <Outlet />
-          <AgeGate />
-          <CinematicIntro />
-          <CookieConsent />
-          <Toaster position="top-center" />
-        </PlatformTourProvider>
-      </AppProvider>
+      <SessionProvider>
+        <AppProvider>
+          <PlatformTourProvider>
+            <Outlet />
+            <AgeGate />
+            <CinematicIntro />
+            <CookieConsent />
+            <Toaster position="top-center" />
+          </PlatformTourProvider>
+        </AppProvider>
+      </SessionProvider>
     </QueryClientProvider>
   );
 }

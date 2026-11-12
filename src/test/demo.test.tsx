@@ -2,6 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { useRef } from "react";
 import { describe, expect, it } from "vitest";
 
+import { SessionProvider } from "@/lib/auth/SessionProvider";
 import { AppProvider, useApp } from "@/lib/store";
 import { createSeedState } from "@/lib/seed";
 
@@ -33,13 +34,15 @@ function Probe({ onReady }: { onReady: (app: App) => void }) {
 function renderApp() {
   let app: App | null = null;
   render(
-    <AppProvider>
-      <Probe
-        onReady={(next) => {
-          app = next;
-        }}
-      />
-    </AppProvider>,
+    <SessionProvider>
+      <AppProvider>
+        <Probe
+          onReady={(next) => {
+            app = next;
+          }}
+        />
+      </AppProvider>
+    </SessionProvider>,
   );
   return { get: () => app };
 }

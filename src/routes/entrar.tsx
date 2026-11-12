@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import { Badge, Button, Field, Input } from "@/components/lux/ui";
 import { BrandLockup } from "@/components/site/brand";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { DEMO_ACCOUNTS, useApp } from "@/lib/store";
+import { DEMO_ACCOUNTS, demoMode } from "@/lib/auth/demo-accounts";
+import { useSession } from "@/lib/auth/SessionProvider";
+import { useApp } from "@/lib/store";
 
 export const Route = createFileRoute("/entrar")({
   head: () => ({
@@ -14,7 +16,7 @@ export const Route = createFileRoute("/entrar")({
       { title: "Entrar — Xclusive" },
       {
         name: "description",
-        content: "Inicia sesión en el prototipo Xclusive con una cuenta de demostración.",
+        content: "Acceso seguro a Xclusive: sesión verificada y roles resueltos en el servidor.",
       },
     ],
   }),
@@ -23,24 +25,46 @@ export const Route = createFileRoute("/entrar")({
 
 function LoginPage() {
   const { login } = useApp();
+  const { mode, signIn } = useSession();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("fan@xclusive.demo");
-  const [password, setPassword] = useState("demo1234");
+  const [email, setEmail] = useState(demoMode ? "fan@xclusive.demo" : "");
+  const [password, setPassword] = useState(demoMode ? "demo1234" : "");
   const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = login(email, password);
-    if (!result.ok) {
-      setError(result.message);
-      toast.error(result.message);
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+
+    if (mode === "demo") {
+      const result = login(email, password);
+      if (!result.ok) {
+        setError(result.message);
+        toast.error(result.message);
+        return;
+      }
+      toast.success(result.message);
+      const target =
+        result.role === "creator" ? "/estudio" : result.role === "admin" ? "/admin" : "/cuenta";
+      navigate({ to: target });
       return;
     }
-    setError("");
-    toast.success(result.message);
-    const target =
-      result.role === "creator" ? "/estudio" : result.role === "admin" ? "/admin" : "/cuenta";
-    navigate({ to: target });
+
+    setPending(true);
+    try {
+      const result = await signIn(email, password);
+      if (!result.ok) {
+        setError(result.message);
+        toast.error(result.message);
+        return;
+      }
+      toast.success(result.message);
+      const target =
+        result.role === "creator" ? "/estudio" : result.role === "admin" ? "/admin" : "/cuenta";
+      navigate({ to: target });
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -55,34 +79,48 @@ function LoginPage() {
             <em className="text-silver-sheen">en tu bolsillo.</em>
           </h1>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-muted-foreground">
-            Entra al prototipo completo con una cuenta de demostración. Todas las operaciones son
-            simuladas: sin tarjeta, sin cargos y sin saldos retirables.
+            {mode === "demo"
+              ? "Entra al prototipo completo con una cuenta de demostración. Todas las operaciones son simuladas: sin tarjeta, sin cargos y sin saldos retirables."
+              : "Tu identidad y tus permisos se verifican en el servidor. La sesión se puede revocar en cualquier momento y no vive en este navegador."}
           </p>
 
-          <div className="mt-8 space-y-2">
-            {DEMO_ACCOUNTS.map((account) => (
-              <button
-                key={account.email}
-                type="button"
-                onClick={() => {
-                  setEmail(account.email);
-                  setPassword(account.password);
-                  setError("");
-                }}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-hairline bg-white/[0.02] p-3 text-left transition-colors hover:border-signal/30 hover:bg-white/[0.04]"
-              >
-                <span>
-                  <span className="block text-xs text-pearl">
-                    {account.role} · {account.name}
+          {demoMode && mode === "demo" ? (
+            <div className="mt-8 space-y-2">
+              {DEMO_ACCOUNTS.map((account) => (
+                <button
+                  key={account.email}
+                  type="button"
+                  onClick={() => {
+                    setEmail(account.email);
+                    setPassword(account.password);
+                    setError("");
+                  }}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-hairline bg-white/[0.02] p-3 text-left transition-colors hover:border-signal/30 hover:bg-white/[0.04]"
+                >
+                  <span>
+                    <span className="block text-xs text-pearl">
+                      {account.role} · {account.name}
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[0.63rem] text-muted-foreground">
+                      {account.email}
+                    </span>
                   </span>
-                  <span className="mt-0.5 block font-mono text-[0.63rem] text-muted-foreground">
-                    {account.email}
-                  </span>
-                </span>
-                <Badge tone="outline">{account.password}</Badge>
-              </button>
-            ))}
-          </div>
+                  <Badge tone="outline">{account.password}</Badge>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <ul className="mt-8 space-y-2 text-xs text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-success" /> Sesión emitida y
+                validada por el servidor.
+              </li>
+              <li className="flex items-center gap-2">
+                <KeyRound className="h-3.5 w-3.5 shrink-0 text-silver" /> Los roles no se pueden
+                editar desde el navegador.
+              </li>
+            </ul>
+          )}
         </div>
 
         <div className="lg:col-span-5 lg:col-start-8">
@@ -94,7 +132,9 @@ function LoginPage() {
               </span>
             </div>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              Usa una cuenta DEMO o la que creaste en este navegador.
+              {mode === "demo"
+                ? "Usa una cuenta DEMO o la que creaste en este navegador."
+                : "Introduce el correo y la contraseña de tu cuenta."}
             </p>
 
             <div className="mt-6 space-y-4">
@@ -105,6 +145,7 @@ function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@correo.com"
+                  required
                 />
               </Field>
               <Field label="Contraseña" required>
@@ -114,21 +155,26 @@ function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
+                  required
                 />
               </Field>
               {error ? (
-                <p className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-200">
+                <p
+                  role="alert"
+                  className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-200"
+                >
                   {error}
                 </p>
               ) : null}
-              <Button type="submit" className="w-full">
-                Entrar <ArrowRight className="h-4 w-4" />
+              <Button type="submit" className="w-full" disabled={pending}>
+                {pending ? "Verificando…" : "Entrar"} <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
 
             <div className="mt-5 flex items-center justify-between text-[0.7rem] text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-success" /> Sesión local
+                <ShieldCheck className="h-3.5 w-3.5 text-success" />
+                {mode === "demo" ? "Sesión local DEMO" : "Sesión verificada"}
               </span>
               <Link to="/registro" className="text-pearl underline-offset-4 hover:underline">
                 Crear cuenta

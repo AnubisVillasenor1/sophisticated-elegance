@@ -10,6 +10,9 @@ import {
 } from "react";
 
 import { autoReplyForFan } from "./ai";
+import { AUTH_MODE } from "./auth/mode";
+import { useSession } from "./auth/SessionProvider";
+import type { Viewer } from "./auth/auth.functions";
 import {
   platformFeeMXN,
   resolveItemPrice,
@@ -389,7 +392,31 @@ export function normalizeStoredState(parsed: unknown): AppState | null {
   return merged;
 }
 
+/**
+ * Proyección de la identidad verificada por el servidor al modelo de la UI.
+ *
+ * Solo se usa en modo LIVE. La contraseña y los datos de demostración quedan
+ * vacíos: la autoridad real es Supabase Auth.
+ */
+function userFromViewer(viewer: Viewer): User {
+  const email = viewer.email ?? "";
+  return {
+    id: viewer.id,
+    name: viewer.displayName?.trim() || email.split("@")[0] || "Miembro",
+    email,
+    password: "",
+    role: viewer.role,
+    creatorSlug: null,
+    joinedAt: new Date().toISOString(),
+    avatarTint: viewer.role === "creator" ? "#ed315c" : "#c56c83",
+    referralCode: "",
+    referredByCode: null,
+    legalAcceptances: [],
+  };
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
+  const session = useSession();
   const [state, setState] = useState<AppState>(() => createSeedState());
   const [hydrated, setHydrated] = useState(false);
   const [storageError, setStorageError] = useState(false);
@@ -401,6 +428,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (raw) {
         const normalized = normalizeStoredState(JSON.parse(raw));
         if (normalized) {
+          // En modo LIVE la identidad solo existe si el servidor la verifica.
+          if (AUTH_MODE === "live") normalized.sessionUserId = null;
           setState(normalized);
         } else {
           window.localStorage.removeItem(STORAGE_KEY);
@@ -421,7 +450,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, hydrated: false }));
+      // La sesión nunca se persiste en modo LIVE: la autoridad es Supabase.
+      const persisted =
+        AUTH_MODE === "live"
+          ? { ...state, hydrated: false, sessionUserId: null }
+          : { ...state, hydrated: false };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
       setStorageError(false);
     } catch {
       try {
@@ -479,10 +513,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.style.setProperty("--ring", state.settings.accent);
   }, [state.settings.accent]);
 
-  const user = useMemo(() => currentUser(state), [state]);
+  // En modo LIVE la identidad la dicta el servidor (`session.viewer`); el estado
+  // local nunca puede promover a un usuario. En DEMO se conserva el flujo local.
+  const user = useMemo<User | null>(() => {
+    if (AUTH_MODE === "live") {
+      return session.viewer ? userFromViewer(session.viewer) : null;
+    }
+    return currentUser(state);
+  }, [session.viewer, state]);
 
   const login = useCallback(
     (email: string, password: string): AuthResult => {
+      if (AUTH_MODE === "live") {
+        return {
+          ok: false,
+          message: "Esta compilación usa autenticación real. Entra desde el formulario de acceso.",
+        };
+      }
       const clean = email.trim().toLowerCase();
       const found = state.users.find((u) => u.email.toLowerCase() === clean);
       if (!found) return { ok: false, message: "No encontramos una cuenta con ese correo." };
@@ -501,6 +548,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const signup = useCallback(
     (input: SignupInput): AuthResult => {
+      if (AUTH_MODE === "live") {
+        return {
+          ok: false,
+          message: "Esta compilación usa autenticación real. Crea tu cuenta desde el registro.",
+        };
+      }
       const email = input.email.trim().toLowerCase();
       if (!input.name.trim()) return { ok: false, message: "Escribe tu nombre." };
       if (!email.includes("@")) return { ok: false, message: "Escribe un correo válido." };
@@ -600,8 +653,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
+    // La sesión local es solo DEMO; en LIVE la revocación real es de Supabase.
     setState((prev) => ({ ...prev, sessionUserId: null }));
-  }, []);
+    if (AUTH_MODE === "live") {
+      void session.signOut();
+    }
+  }, [session]);
 
   const resetDemo = useCallback(() => {
     try {
@@ -1918,29 +1975,5 @@ export function useDashboardData(creatorId: string | null) {
     available: creatorAvailable(state, creatorId),
   };
 }
-
-export const DEMO_ACCOUNTS = [
-  {
-    role: "Fan",
-    name: "Alex Rivera",
-    email: "fan@xclusive.demo",
-    password: "demo1234",
-    description: "Membresías, compras, bóveda y mensajes.",
-  },
-  {
-    role: "Creadora",
-    name: "Valentina R.",
-    email: "valentina@xclusive.demo",
-    password: "demo1234",
-    description: "Estudio, contenido, ingresos y retiros.",
-  },
-  {
-    role: "Administración",
-    name: "Dirección Xclusive",
-    email: "admin@xclusive.demo",
-    password: "demo1234",
-    description: "Solicitudes, moderación, pagos y white-label.",
-  },
-] as const;
 
 export { hasAcceptedCurrent };

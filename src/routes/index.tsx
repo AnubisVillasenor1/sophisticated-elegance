@@ -22,6 +22,7 @@ import { BrandWatermark } from "@/components/site/brand";
 import { EditorialLookbook } from "@/components/site/EditorialLookbook";
 import { HeroEditorial } from "@/components/site/HeroEditorial";
 import { PlatformAreaBanners } from "@/components/site/PlatformAreaBanners";
+import { demoMode } from "@/lib/auth/demo-accounts";
 import { formatNumber } from "@/lib/format";
 import { BASE_TIER_PRICES_MXN, tierPriceLabel } from "@/lib/pricing";
 import { CAPABILITIES, ECOSYSTEM_PRINCIPLES } from "@/lib/platforms";
@@ -568,26 +569,30 @@ function Landing() {
               </>
             )}
           </div>
-          <div className="mx-auto mt-10 grid max-w-2xl gap-2 text-left sm:grid-cols-3">
-            {[
-              ["fan@xclusive.demo", "Miembro"],
-              ["valentina@xclusive.demo", "Creadora"],
-              ["admin@xclusive.demo", "Administración"],
-            ].map(([email, role]) => (
-              <div
-                key={email}
-                className="rounded-lg border border-hairline bg-background/50 p-3 backdrop-blur"
-              >
-                <p className="text-[0.58rem] uppercase tracking-[0.16em] text-muted-foreground">
-                  {role}
-                </p>
-                <p className="mt-1 truncate font-mono text-[0.65rem] text-pearl">{email}</p>
+          {demoMode ? (
+            <>
+              <div className="mx-auto mt-10 grid max-w-2xl gap-2 text-left sm:grid-cols-3">
+                {[
+                  ["fan@xclusive.demo", "Miembro"],
+                  ["valentina@xclusive.demo", "Creadora"],
+                  ["admin@xclusive.demo", "Administración"],
+                ].map(([email, role]) => (
+                  <div
+                    key={email}
+                    className="rounded-lg border border-hairline bg-background/50 p-3 backdrop-blur"
+                  >
+                    <p className="text-[0.58rem] uppercase tracking-[0.16em] text-muted-foreground">
+                      {role}
+                    </p>
+                    <p className="mt-1 truncate font-mono text-[0.65rem] text-pearl">{email}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <p className="mt-3 text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">
-            Contraseña de demostración: demo1234
-          </p>
+              <p className="mt-3 text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Contraseña de demostración: demo1234
+              </p>
+            </>
+          ) : null}
         </div>
       </section>
     </SiteLayout>

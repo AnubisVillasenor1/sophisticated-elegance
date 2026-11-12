@@ -10,6 +10,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 import { PlatformTourProvider, TourTrigger } from "@/components/site/PlatformTour";
+import { SessionProvider } from "@/lib/auth/SessionProvider";
 import { AppProvider } from "@/lib/store";
 
 const memory = new Map<string, string>();
@@ -29,11 +30,13 @@ Object.defineProperty(window, "localStorage", {
 
 function renderTour() {
   return render(
-    <AppProvider>
-      <PlatformTourProvider>
-        <TourTrigger />
-      </PlatformTourProvider>
-    </AppProvider>,
+    <SessionProvider>
+      <AppProvider>
+        <PlatformTourProvider>
+          <TourTrigger />
+        </PlatformTourProvider>
+      </AppProvider>
+    </SessionProvider>,
   );
 }
 
