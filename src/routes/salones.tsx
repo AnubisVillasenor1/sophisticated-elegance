@@ -6,6 +6,7 @@ import { LiveCard } from "@/components/lux/cards";
 import { Badge, EmptyState, SectionHeading } from "@/components/lux/ui";
 import { PageHero, SiteLayout } from "@/components/site/SiteLayout";
 import { upcomingLive } from "@/lib/selectors";
+import { ROOM_PHOTOS } from "@/lib/site-media";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +52,7 @@ function SalonesPage() {
   return (
     <SiteLayout>
       <PageHero
-        cover="atrio"
+        image={ROOM_PHOTOS.curtain}
         eyebrow="Salones"
         title={
           <>

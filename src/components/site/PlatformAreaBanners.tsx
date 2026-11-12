@@ -2,32 +2,30 @@ import { ArrowUpRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { btn } from "@/components/lux/ui";
+import { BRAND_BANNERS } from "@/lib/site-media";
 
 const areas = [
   {
     title: "Perfiles y galerías",
     description: "Descubre creadoras, colecciones y espacios editoriales privados.",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Gemini_Generated_Image_3akt4e3akt4e3akt-c2hkoEoVGiGBHSsJ4rVuTWLOIWkTAp.jpg",
-    alt: "Banner Xclusive en negro, rojo y plata que presenta los perfiles, las galerías y sus secciones.",
+    image: BRAND_BANNERS.sections.src,
+    alt: BRAND_BANNERS.sections.alt,
     href: "/explorar" as const,
     action: "Explorar perfiles",
   },
   {
     title: "Comunidad y monetización",
     description: "Salones, contenido y opciones de membresía para cada comunidad.",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Gemini_Generated_Image_4ew3fa4ew3fa4ew3-KXc3ih54jEe3VNsa92yuSdShCRqzGS.jpg",
-    alt: "Banner Xclusive en negro, rojo y plata que presenta la comunidad, el contenido y la monetización.",
+    image: BRAND_BANNERS.community.src,
+    alt: BRAND_BANNERS.community.alt,
     href: "/salones" as const,
     action: "Ver la comunidad",
   },
   {
     title: "Administración y cumplimiento",
     description: "Acceso a la operación de la plataforma y a la información de confianza.",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Gemini_Generated_Image_7e07zq7e07zq7e07-yoyDlRpSvJn7pCTAJlfw3o12ooI2ba.jpg",
-    alt: "Banner Xclusive en negro, rojo y plata que presenta las áreas de administración, privacidad, términos y soporte técnico.",
+    image: BRAND_BANNERS.admin.src,
+    alt: BRAND_BANNERS.admin.alt,
     href: "/admin" as const,
     action: "Ir a administración",
   },

@@ -7,6 +7,7 @@ import { Badge, Button, EmptyState, Input, SectionHeading, Select, btn } from "@
 import { PageHero, SiteLayout } from "@/components/site/SiteLayout";
 import { useApp } from "@/lib/store";
 import { liveNow } from "@/lib/selectors";
+import { BRAND_BANNERS } from "@/lib/site-media";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/explorar")({
@@ -70,6 +71,7 @@ function ExplorePage() {
   return (
     <SiteLayout>
       <PageHero
+        image={BRAND_BANNERS.sections}
         eyebrow="Descubrimiento editorial"
         title={
           <>

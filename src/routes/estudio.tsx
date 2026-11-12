@@ -1782,7 +1782,7 @@ function AjustesTab({ creator }: { creator: Creator }) {
 
         <SectionCard title="Vista previa" description="Así se verá tu tarjeta.">
           <div className="overflow-hidden rounded-xl border border-hairline">
-            <Cover kind={cover} alt="" className="aspect-[16/10] w-full">
+            <Cover kind={cover} src={creator.image} alt="" className="aspect-[16/10] w-full">
               <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
               <div className="absolute inset-x-3 bottom-3">
                 <p className="text-[0.58rem] uppercase tracking-[0.16em] text-silver/80">
@@ -1792,7 +1792,13 @@ function AjustesTab({ creator }: { creator: Creator }) {
               </div>
             </Cover>
             <div className="flex items-center gap-2 p-3">
-              <Avatar name={creator.name} tint={avatarTint} size={30} ring={false} />
+              <Avatar
+                name={creator.name}
+                src={creator.image}
+                tint={avatarTint}
+                size={30}
+                ring={false}
+              />
               <p className="line-clamp-2 text-[0.68rem] text-muted-foreground">{headline}</p>
             </div>
           </div>

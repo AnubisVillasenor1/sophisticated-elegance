@@ -629,9 +629,11 @@ function SecurityTab() {
   const [passwordErr, setPasswordErr] = useState("");
   const [changing, setChanging] = useState(false);
   const [loading, setLoading] = useState(!demoMode);
-  const [enrollment, setEnrollment] = useState<{ factorId: string; qr: string; secret: string } | null>(
-    null,
-  );
+  const [enrollment, setEnrollment] = useState<{
+    factorId: string;
+    qr: string;
+    secret: string;
+  } | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -882,7 +884,10 @@ function SecurityTab() {
             )}
 
             {error ? (
-              <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-200">
+              <p
+                role="alert"
+                className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-200"
+              >
                 {error}
               </p>
             ) : null}
@@ -937,8 +942,8 @@ function SecurityTab() {
           <p className="rounded-lg border border-warning/25 bg-warning/5 p-3">
             Para exigir el segundo factor en cada operación sensible, la base de datos debe aplicar
             una política RLS que valide <span className="font-mono">aal = &quot;aal2&quot;</span>.
-            Esta aplicación ya no publica la sesión hasta verificar el código, pero la política es la
-            garantía última del servidor.
+            Esta aplicación ya no publica la sesión hasta verificar el código, pero la política es
+            la garantía última del servidor.
           </p>
         </div>
       </SectionCard>

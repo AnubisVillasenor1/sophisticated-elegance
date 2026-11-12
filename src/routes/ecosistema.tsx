@@ -10,6 +10,7 @@ import {
   ECOSYSTEM_PRINCIPLES,
   type CapabilityCategory,
 } from "@/lib/platforms";
+import { BRAND_BANNERS } from "@/lib/site-media";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/ecosistema")({
@@ -37,6 +38,7 @@ function EcosystemPage() {
   return (
     <SiteLayout>
       <PageHero
+        image={BRAND_BANNERS.community}
         eyebrow="Arquitectura del producto"
         title={
           <>

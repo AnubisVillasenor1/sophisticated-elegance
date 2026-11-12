@@ -11,6 +11,7 @@ import {
   LEGAL_UPDATED,
   LEGAL_VERSION,
 } from "@/lib/legal";
+import { BRAND_BANNERS } from "@/lib/site-media";
 
 export const Route = createFileRoute("/legal/")({
   head: () => ({
@@ -30,6 +31,7 @@ function LegalIndexPage() {
   return (
     <SiteLayout>
       <PageHero
+        image={BRAND_BANNERS.admin}
         eyebrow="Centro legal"
         title={
           <>

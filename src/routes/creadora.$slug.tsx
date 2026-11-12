@@ -401,7 +401,12 @@ function CreatorProfilePage() {
                       key={room.id}
                       className="overflow-hidden rounded-xl border border-hairline bg-card/50"
                     >
-                      <Cover kind={room.cover} alt="" className="aspect-[16/9] w-full">
+                      <Cover
+                        kind={room.cover}
+                        src={room.image}
+                        alt=""
+                        className="aspect-[16/9] w-full"
+                      >
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         <div className="absolute left-3 top-3 flex gap-1.5">
                           {room.status === "live" ? (

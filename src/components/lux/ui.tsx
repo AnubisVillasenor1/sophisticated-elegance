@@ -174,12 +174,15 @@ export function SectionHeading({
 
 export function Avatar({
   name,
+  src,
   tint = "#ed315c",
   size = 40,
   className,
   ring = true,
 }: {
   name: string;
+  /** Retrato opcional. Si falta, se muestran las iniciales sobre el tinte. */
+  src?: string | undefined;
   tint?: string;
   size?: number;
   className?: string;
@@ -188,7 +191,7 @@ export function Avatar({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full font-serif text-pearl",
+        "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-serif text-pearl",
         ring && "ring-1 ring-white/15 ring-offset-2 ring-offset-background",
         className,
       )}
@@ -201,7 +204,17 @@ export function Avatar({
       }}
       aria-hidden
     >
-      {initials(name)}
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        initials(name)
+      )}
     </span>
   );
 }

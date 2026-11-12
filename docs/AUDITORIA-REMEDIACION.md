@@ -275,3 +275,58 @@ no firma y el reenvío de evidencia pendiente solo para el correo correcto.
 acceso con segundo factor y registra evidencia legal firmada, pero **no puede
 cobrar ni custodiar contenido privado** sin PSP, KYC y las migraciones de
 persistencia. Declarar 100% sería falso.
+
+---
+
+## 10. Iteración 3: catálogo visual completo y medios locales
+
+Fecha de corte: 11 de noviembre de 2026 (tercera pasada).
+
+Los 14 archivos subidos al repositorio se integraron al bundle. Ya no queda
+ninguna imagen servida desde almacenamiento externo: los tres banners que
+apuntaban a `public.blob.vercel-storage.com` ahora se importan desde
+`src/assets`, de modo que el despliegue no depende de ese bucket ni de su CORS.
+
+### Asignación
+
+| Archivo | Uso |
+| --- | --- |
+| `Gemini_Generated_Image_3akt…jpg` | Banner de «Perfiles y galerías» en la home y fondo de `/explorar` |
+| `Gemini_Generated_Image_4ew3…jpg` | Banner de «Comunidad y monetización» y fondo de `/ecosistema` |
+| `Gemini_Generated_Image_7e07…jpg` | Banner de «Administración y cumplimiento» y fondo de `/legal` |
+| `rooms1.avif` | Salón «Sesión de medianoche» (Valentina) y hero de `/ayuda` |
+| `rooms2.jpg` | Salón «Cuarto oscuro — XTRIME» (Valentina) |
+| `rooms3.avif` | Salón «Círculo de luna» (Alba) y hero de `/salones` |
+| `rooms4.jpg` | Salón «Noche de vinilo» (Luna) y hero de `/clips` |
+| `modelo1.jpg` | Retrato de Camila Noir |
+| `modelo2.jpg` | Retrato de Nina Blake |
+| `modelo3.jpg` | Retrato de Renata Sol |
+| `modelo4.jpg` | Retrato de Danna Cruz |
+| `descarga.jpg` | Retrato de Jade K. |
+| `videoframe_2014.png` | Retrato de Luna Ferrer |
+
+Los retratos se usan en la portada de la creadora, en las tarjetas, en los
+avatares de salón, estudio y administración, y en el hero de su perfil. Un
+estado guardado en `localStorage` de una versión anterior recibe las imágenes
+nuevas al hidratar (`normalizeStoredState`).
+
+### Único archivo no publicado
+
+`modelo5.jpg` lleva la marca de agua **KALINKAFOX** y corresponde a una autora
+externa. Publicarlo como retrato de una creadora de la plataforma atribuiría una
+obra ajena y podría infringir derechos de autor. Se conserva en el repositorio,
+pero no se muestra hasta contar con licencia o autorización verificable. No se
+recortó la marca para disimular el origen.
+
+### Pruebas de esta iteración
+
+```sh
+npx tsc --noEmit        # 0 errores
+npm test                # 8 archivos, 48 pruebas aprobadas
+npm run lint            # 0 errores, 16 avisos preexistentes
+npm run build           # 19 de 20 imágenes emitidas con hash de contenido
+python asset_usage.py   # unused: ['modelo5.jpg'] (bloqueo documentado)
+```
+
+La matriz global no cambia de forma material: el catálogo visual pasa de 9 a 10
+sobre 10 y el resto de dominios sigue igual. **46/100**, no 100.

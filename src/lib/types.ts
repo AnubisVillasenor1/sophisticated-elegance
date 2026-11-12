@@ -85,6 +85,8 @@ export type LiveRoom = {
   viewers: number;
   capacity: number;
   cover: CoverKey;
+  /** Fotografía del salón. Si falta, se usa la portada procedural. */
+  image?: string;
   tipsMXN: number;
 };
 

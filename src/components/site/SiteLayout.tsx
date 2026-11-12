@@ -26,16 +26,30 @@ export function PageHero({
   description,
   aside,
   cover,
+  image,
 }: {
   eyebrow: string;
   title: ReactNode;
   description: ReactNode;
   aside?: ReactNode;
   cover?: CoverKey;
+  /** Fotografía de fondo del bundle. Tiene prioridad sobre `cover`. */
+  image?: { src: string; alt: string } | undefined;
 }) {
   return (
     <section className="relative overflow-hidden border-b border-hairline">
-      {cover ? (
+      {image ? (
+        <>
+          <img
+            src={image.src}
+            alt={image.alt}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-45"
+            fetchPriority="high"
+            decoding="async"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/45" />
+        </>
+      ) : cover ? (
         <>
           <Cover kind={cover} alt="" className="pointer-events-none absolute inset-0 opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/30" />

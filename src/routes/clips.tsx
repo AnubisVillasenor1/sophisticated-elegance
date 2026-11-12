@@ -7,6 +7,7 @@ import { CheckoutDialog, type CheckoutState } from "@/components/lux/checkout";
 import { Badge, EmptyState, Input, Select } from "@/components/lux/ui";
 import { PageHero, SiteLayout } from "@/components/site/SiteLayout";
 import { allClips } from "@/lib/selectors";
+import { ROOM_PHOTOS } from "@/lib/site-media";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +58,7 @@ function ClipsPage() {
   return (
     <SiteLayout>
       <PageHero
+        image={ROOM_PHOTOS.lounge}
         eyebrow="Marketplace"
         title={
           <>

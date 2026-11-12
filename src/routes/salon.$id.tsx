@@ -234,7 +234,12 @@ function SalonPage() {
           {/* Stage */}
           <div className="lg:col-span-8">
             <div className="overflow-hidden rounded-xl border border-hairline bg-card/50 shadow-deep">
-              <Cover kind={room.cover} alt="" className="relative aspect-video w-full">
+              <Cover
+                kind={room.cover}
+                src={room.image}
+                alt=""
+                className="relative aspect-video w-full"
+              >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/40" />
                 <div className="pointer-events-none absolute inset-0 aura opacity-70" />
                 {isLive ? (
@@ -330,7 +335,12 @@ function SalonPage() {
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline p-4">
                 <div className="flex items-center gap-2">
-                  <Avatar name={creator.name} tint={creator.avatarTint} size={34} />
+                  <Avatar
+                    name={creator.name}
+                    src={creator.image}
+                    tint={creator.avatarTint}
+                    size={34}
+                  />
                   <div>
                     <p className="text-xs text-pearl">{creator.name}</p>
                     <p className="text-[0.6rem] text-muted-foreground">

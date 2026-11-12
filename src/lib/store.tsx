@@ -374,12 +374,20 @@ export function normalizeStoredState(parsed: unknown): AppState | null {
         const current = seedCreator?.tiers.find((item) => item.id === tier.id);
         return current ? { ...tier, priceMXN: current.priceMXN } : tier;
       });
+      // El arte editorial se toma del bundle vigente: un estado guardado con
+      // versiones anteriores no debe ocultar los retratos ni las fotos de salón.
+      const rooms = (Array.isArray(creator.rooms) ? creator.rooms : []).map((room) => {
+        if (room.image) return room;
+        const seedRoom = seedCreator?.rooms.find((item) => item.id === room.id);
+        return seedRoom?.image ? { ...room, image: seedRoom.image } : room;
+      });
       return {
         ...creator,
+        ...(creator.image ? {} : seedCreator?.image ? { image: seedCreator.image } : {}),
         tiers,
         posts: Array.isArray(creator.posts) ? creator.posts : [],
         clips: Array.isArray(creator.clips) ? creator.clips : [],
-        rooms: Array.isArray(creator.rooms) ? creator.rooms : [],
+        rooms,
         offers: Array.isArray(creator.offers) ? creator.offers : [],
         bundles: Array.isArray(creator.bundles) ? creator.bundles : [],
         revenueShare: Math.max(0, Math.min(100, Number(creator.revenueShare) || 80)),

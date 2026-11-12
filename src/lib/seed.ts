@@ -2,6 +2,7 @@ import { CREATOR_PORTRAITS } from "./creator-portraits";
 import { addDaysISO, demoHash } from "./format";
 import { LEGAL_VERSION } from "./legal";
 import { subscriptionPrice } from "./pricing";
+import { ROOM_PHOTOS } from "./site-media";
 import type {
   AppState,
   Application,
@@ -156,6 +157,7 @@ type RoomSeed = {
   viewers: number;
   capacity: number;
   cover: CoverKey;
+  image?: string;
   tipsMXN: number;
 };
 
@@ -322,6 +324,7 @@ const creators: Creator[] = [
         viewers: 38,
         capacity: 40,
         cover: "salon",
+        image: ROOM_PHOTOS.atrium.src,
         tipsMXN: 1840,
       },
       {
@@ -335,6 +338,7 @@ const creators: Creator[] = [
         viewers: 0,
         capacity: 18,
         cover: "portrait",
+        image: ROOM_PHOTOS.dungeon.src,
         tipsMXN: 0,
       },
     ]),
@@ -378,6 +382,7 @@ const creators: Creator[] = [
     categories: ["Cosplay", "Fantasía"],
     tags: ["cosplay", "fantasía", "maquillaje", "set", "noir"],
     cover: "noir",
+    image: CREATOR_PORTRAITS.camila,
     avatarTint: "#8a1c14",
     status: "approved",
     verified: true,
@@ -505,6 +510,7 @@ const creators: Creator[] = [
     categories: ["Fitness", "Lifestyle"],
     tags: ["fitness", "movilidad", "bienestar", "playa", "SFW"],
     cover: "sol",
+    image: CREATOR_PORTRAITS.renata,
     avatarTint: "#c98a4b",
     status: "approved",
     verified: true,
@@ -708,6 +714,7 @@ const creators: Creator[] = [
         viewers: 0,
         capacity: 60,
         cover: "mystic",
+        image: ROOM_PHOTOS.curtain.src,
         tipsMXN: 0,
       },
     ]),
@@ -735,6 +742,7 @@ const creators: Creator[] = [
     categories: ["Música", "Live"],
     tags: ["música", "vinilo", "acústico", "live", "SFW"],
     cover: "vinyl",
+    image: CREATOR_PORTRAITS.luna,
     avatarTint: "#b0724f",
     status: "approved",
     verified: true,
@@ -814,6 +822,7 @@ const creators: Creator[] = [
         viewers: 112,
         capacity: 250,
         cover: "vinyl",
+        image: ROOM_PHOTOS.lounge.src,
         tipsMXN: 980,
       },
     ]),
@@ -979,6 +988,7 @@ const creators: Creator[] = [
     categories: ["Arte", "Digital"],
     tags: ["arte", "ilustración", "digital", "coleccionables", "SFW"],
     cover: "art",
+    image: CREATOR_PORTRAITS.danna,
     avatarTint: "#5f7fa8",
     status: "approved",
     verified: true,
@@ -1200,6 +1210,7 @@ const creators: Creator[] = [
     categories: ["Drag", "Performance"],
     tags: ["drag", "performance", "LGBTQ+", "maquillaje", "comunidad"],
     cover: "jade",
+    image: CREATOR_PORTRAITS.jade,
     avatarTint: "#4f9e83",
     status: "approved",
     verified: true,
@@ -1306,6 +1317,7 @@ const creators: Creator[] = [
     categories: ["Lifestyle", "IA"],
     tags: ["IA", "lifestyle", "moda", "experimental", "transparencia"],
     cover: "ai",
+    image: CREATOR_PORTRAITS.nina,
     avatarTint: "#8d6bb3",
     status: "approved",
     verified: true,

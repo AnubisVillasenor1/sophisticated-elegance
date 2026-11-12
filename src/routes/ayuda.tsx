@@ -13,6 +13,7 @@ import {
 
 import { Badge, SectionHeading, btn } from "@/components/lux/ui";
 import { PageHero, SiteLayout } from "@/components/site/SiteLayout";
+import { ROOM_PHOTOS } from "@/lib/site-media";
 import { useApp } from "@/lib/store";
 
 export const Route = createFileRoute("/ayuda")({
@@ -69,6 +70,7 @@ function HelpPage() {
   return (
     <SiteLayout>
       <PageHero
+        image={ROOM_PHOTOS.atrium}
         eyebrow="Centro de ayuda"
         title={
           <>

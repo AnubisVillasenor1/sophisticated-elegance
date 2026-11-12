@@ -3,7 +3,12 @@
   "service": "xclusive",
   "auth": "supabase",
   "mode": "live",
-  "features": ["password-recovery", "totp-mfa", "server-signed-legal-receipts"],
+  "features": [
+    "password-recovery",
+    "totp-mfa",
+    "server-signed-legal-receipts",
+    "bundled-media"
+  ],
   "legalVersion": "2026.11-demo",
   "adultContent": "disabled",
   "payments": "simulated",

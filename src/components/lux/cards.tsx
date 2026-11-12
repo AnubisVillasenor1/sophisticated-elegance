@@ -303,7 +303,13 @@ export function ClipCard({
             params={{ slug: creator.slug }}
             className="inline-flex items-center gap-2 text-[0.65rem] text-silver transition-colors hover:text-pearl"
           >
-            <Avatar name={creator.name} tint={creator.avatarTint} size={22} ring={false} />{" "}
+            <Avatar
+              name={creator.name}
+              src={creator.image}
+              tint={creator.avatarTint}
+              size={22}
+              ring={false}
+            />{" "}
             {creator.name}
           </Link>
           <span className="rounded-full border border-white/10 bg-black/60 px-2 py-0.5 text-[0.6rem] text-silver backdrop-blur">
@@ -365,7 +371,7 @@ export function LiveCard({ room, creator }: { room: LiveRoom; creator: Creator }
       params={{ id: room.id }}
       className="group block overflow-hidden rounded-xl border border-hairline bg-card/50 transition-all duration-500 hover:-translate-y-1 hover:border-signal/30"
     >
-      <Cover kind={room.cover} alt="" className="aspect-[16/9] w-full">
+      <Cover kind={room.cover} src={room.image} alt="" className="aspect-[16/9] w-full">
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/30" />
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           {room.status === "live" ? (
@@ -504,7 +510,7 @@ export function CreatorStrip({ creator }: { creator: Creator }) {
       params={{ slug: creator.slug }}
       className="flex items-center gap-3 rounded-xl border border-hairline bg-white/[0.02] p-3 transition-colors hover:border-signal/30 hover:bg-white/[0.04]"
     >
-      <Avatar name={creator.name} tint={creator.avatarTint} size={38} />
+      <Avatar name={creator.name} src={creator.image} tint={creator.avatarTint} size={38} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-pearl">{creator.name}</p>
         <p className="truncate text-[0.65rem] text-muted-foreground">

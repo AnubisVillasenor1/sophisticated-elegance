@@ -744,7 +744,13 @@ function CreatorAdminRow({ creator }: { creator: Creator }) {
     <article className="rounded-xl border border-hairline bg-card/40 p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
-          <Avatar name={creator.name} tint={creator.avatarTint} size={42} ring={false} />
+          <Avatar
+            name={creator.name}
+            src={creator.image}
+            tint={creator.avatarTint}
+            size={42}
+            ring={false}
+          />
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-sm text-pearl">{creator.name}</p>
