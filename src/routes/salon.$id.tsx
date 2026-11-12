@@ -30,6 +30,7 @@ import {
 } from "@/components/lux/ui";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { formatDateTime, formatMoney, formatNumber, formatTime } from "@/lib/format";
+import { roomVideo } from "@/lib/site-media";
 import { useApp } from "@/lib/store";
 import type { Creator, LiveRoom } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -136,6 +137,8 @@ function SalonPage() {
     user?.role === "admin" || (user?.role === "creator" && user.creatorSlug === creator.slug);
   const canEnter =
     !isLive || room.access === "free" || Boolean(subscription) || entered || isOwnerOrAdmin;
+  /** El video del salón solo se reproduce cuando la persona ya puede entrar. */
+  const stageVideo = isLive && canEnter ? roomVideo(room.image) : null;
 
   const enterRoom = () => {
     if (!user) return;
@@ -240,6 +243,20 @@ function SalonPage() {
                 alt=""
                 className="relative aspect-video w-full"
               >
+                {stageVideo ? (
+                  <video
+                    src={stageVideo.video}
+                    poster={stageVideo.poster}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    disablePictureInPicture
+                    aria-hidden="true"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/40" />
                 <div className="pointer-events-none absolute inset-0 aura opacity-70" />
                 {isLive ? (

@@ -37,7 +37,7 @@ const sizes: Record<Size, string> = {
 
 export function btn(variant: Variant = "primary", size: Size = "md", extra = ""): string {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-wide transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none",
+    "btn-crystal inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-wide focus-visible:outline-none disabled:pointer-events-none",
     variants[variant],
     sizes[size],
     extra,
@@ -288,8 +288,12 @@ export function StatCard({
   );
 }
 
+/**
+ * Divisor doble de la casa: dos hilos con cereza, platino, perla y limón en
+ * movimiento. Se usa entre secciones, subsecciones y bloques de margen.
+ */
 export function Divider({ className }: { className?: string }) {
-  return <div className={cn("h-px w-full bg-hairline", className)} />;
+  return <div aria-hidden className={cn("divider-prism", className)} />;
 }
 
 export function EmptyState({

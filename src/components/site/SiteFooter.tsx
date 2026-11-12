@@ -43,7 +43,8 @@ const columns = [
 export function SiteFooter() {
   const { state } = useApp();
   return (
-    <footer className="relative overflow-hidden border-t border-hairline bg-black/20">
+    <footer className="relative overflow-hidden bg-black/20">
+      <div aria-hidden className="divider-prism" />
       <div className="pointer-events-none absolute -right-32 top-0 h-72 w-72 rounded-full bg-ember opacity-40" />
       <BrandWatermark className="-right-16 -top-12 w-72 opacity-[0.07] sm:w-96" />
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-10 lg:py-18">

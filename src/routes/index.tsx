@@ -16,8 +16,9 @@ import {
 
 import portrait from "@/assets/editorial_portrait.jpg";
 import { CreatorCard, LiveCard } from "@/components/lux/cards";
-import { Badge, Button, DemoBadge, SectionHeading, btn } from "@/components/lux/ui";
+import { Badge, Button, DemoBadge, Divider, SectionHeading, btn } from "@/components/lux/ui";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { VideoReel } from "@/components/site/VideoReel";
 import { BrandWatermark } from "@/components/site/brand";
 import { EditorialLookbook } from "@/components/site/EditorialLookbook";
 import { HeroEditorial } from "@/components/site/HeroEditorial";
@@ -522,6 +523,28 @@ function Landing() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Sala de proyección */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10">
+        <SectionHeading
+          eyebrow="VI — Sala de proyección"
+          title={
+            <>
+              La marca, <em className="text-silver-sheen">en movimiento.</em>
+            </>
+          }
+          description="Piezas editoriales silenciosas que se reproducen al pasar el cursor o al tocar. Son una muestra del acabado audiovisual de la plataforma."
+          action={
+            <Link to="/clips" className={btn("secondary", "md")}>
+              Ver todos los clips <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+        />
+        <div className="mt-7">
+          <VideoReel />
+        </div>
+        <Divider className="mt-14" />
       </section>
 
       {/* CTA */}

@@ -4,8 +4,9 @@ import { useMemo, useState } from "react";
 
 import { ClipCard } from "@/components/lux/cards";
 import { CheckoutDialog, type CheckoutState } from "@/components/lux/checkout";
-import { Badge, EmptyState, Input, Select } from "@/components/lux/ui";
+import { Badge, Divider, EmptyState, Input, Select, SectionHeading } from "@/components/lux/ui";
 import { PageHero, SiteLayout } from "@/components/site/SiteLayout";
+import { VideoReel } from "@/components/site/VideoReel";
 import { allClips } from "@/lib/selectors";
 import { ROOM_PHOTOS } from "@/lib/site-media";
 import { useApp } from "@/lib/store";
@@ -84,6 +85,23 @@ function ClipsPage() {
           </div>
         }
       />
+
+      <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-10 lg:pt-14">
+        <SectionHeading
+          eyebrow="Sala de proyección"
+          title={
+            <>
+              Piezas <em className="text-silver-sheen">en movimiento.</em>
+            </>
+          }
+          description="Clips silenciosos que se reproducen al pasar el cursor o al tocar. Son la muestra editorial de la plataforma; el acceso completo se compra por pieza."
+          action={<Badge tone="signal">3 piezas</Badge>}
+        />
+        <div className="mt-6">
+          <VideoReel />
+        </div>
+        <Divider className="mt-10" />
+      </section>
 
       <section
         data-tour="clips-search"

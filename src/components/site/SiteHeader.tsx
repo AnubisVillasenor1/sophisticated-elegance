@@ -161,7 +161,8 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <div className="relative overflow-hidden border-t border-hairline bg-background/95 px-4 pb-6 pt-3 backdrop-blur-xl lg:hidden">
+        <div className="relative overflow-hidden bg-background/95 px-4 pb-6 pt-3 backdrop-blur-xl lg:hidden">
+          <div aria-hidden className="divider-prism absolute inset-x-0 top-0 opacity-80" />
           <BrandWatermark className="-right-12 -top-10 w-52 opacity-[0.08]" sizes="208px" />
           <div className="grid gap-1">
             {nav.map((item) => (

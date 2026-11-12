@@ -20,7 +20,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { formatNumber } from "@/lib/format";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { Avatar, Badge, Button, DemoBadge } from "@/components/lux/ui";
+import { Avatar, Badge, Button, DemoBadge, Divider } from "@/components/lux/ui";
 import { Logo, BrandWatermark } from "@/components/site/brand";
 
 type NavItem = { to: string; label: string; icon: ReactNode; badge?: number };
@@ -330,7 +330,7 @@ export function SectionCard({
 }) {
   return (
     <section className={cn("panel p-5 sm:p-6", className)}>
-      <div className="flex flex-col gap-2 border-b border-hairline pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="font-serif text-2xl text-pearl">{title}</h2>
           {description ? (
@@ -339,6 +339,7 @@ export function SectionCard({
         </div>
         {action}
       </div>
+      <Divider className="mt-4" />
       <div className="pt-5">{children}</div>
     </section>
   );
