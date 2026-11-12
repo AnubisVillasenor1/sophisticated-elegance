@@ -21,6 +21,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { BrandWatermark } from "@/components/site/brand";
 import { EditorialLookbook } from "@/components/site/EditorialLookbook";
 import { HeroEditorial } from "@/components/site/HeroEditorial";
+import { PlatformAreaBanners } from "@/components/site/PlatformAreaBanners";
 import { formatNumber } from "@/lib/format";
 import { BASE_TIER_PRICES_MXN, tierPriceLabel } from "@/lib/pricing";
 import { CAPABILITIES, ECOSYSTEM_PRINCIPLES } from "@/lib/platforms";
@@ -442,6 +443,8 @@ function Landing() {
           ))}
         </div>
       </section>
+
+      <PlatformAreaBanners />
 
       {/* Trust / legal */}
       <section className="border-y border-hairline bg-black/20">
