@@ -289,7 +289,7 @@ export const getVaultDownloadUrl = createServerFn({ method: "POST" })
     if (!limit(`vault:${context.userId}`, 30)) {
       return { ok: false, message: "Demasiadas solicitudes." };
     }
-    if (!data.path || !data.itemId) return { ok: false, message: "Solicitud incompleta." };
+    if (!data.itemId) return { ok: false, message: "Solicitud incompleta." };
 
     if (!process.env["SUPABASE_URL"] || !process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
       return { ok: false, message: "La bóveda no está configurada en este entorno." };
@@ -310,7 +310,21 @@ export const getVaultDownloadUrl = createServerFn({ method: "POST" })
         return { ok: false, message: "No tienes acceso a esta pieza." };
       }
 
-      const signed = await db.storage.from("vault").createSignedUrl(data.path, 60);
+      // El archivo se resuelve en el servidor: la ruta enviada por el cliente
+      // nunca manda sobre la que está registrada para la pieza.
+      let mediaPath = data.path;
+      if (!mediaPath) {
+        const { data: content } = await db
+          .from("xclusive_content")
+          .select("media_path")
+          .eq("id", data.itemId)
+          .limit(1);
+        const row = (content?.[0] ?? null) as { media_path?: string | null } | null;
+        mediaPath = row?.media_path ?? "";
+      }
+      if (!mediaPath) return { ok: false, message: "La pieza no tiene archivo publicado." };
+
+      const signed = await db.storage.from("vault").createSignedUrl(mediaPath, 60);
       if (signed.error || !signed.data) {
         return { ok: false, message: "La pieza no está disponible." };
       }

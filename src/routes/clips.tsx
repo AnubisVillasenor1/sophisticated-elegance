@@ -6,6 +6,7 @@ import { ClipCard } from "@/components/lux/cards";
 import { CheckoutDialog, type CheckoutState } from "@/components/lux/checkout";
 import { Badge, Divider, EmptyState, Input, Select, SectionHeading } from "@/components/lux/ui";
 import { PageHero, SiteLayout } from "@/components/site/SiteLayout";
+import { PublishedContent } from "@/components/site/PublishedContent";
 import { VideoReel } from "@/components/site/VideoReel";
 import { allClips } from "@/lib/selectors";
 import { ROOM_PHOTOS } from "@/lib/site-media";
@@ -85,6 +86,8 @@ function ClipsPage() {
           </div>
         }
       />
+
+      <PublishedContent />
 
       <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-10 lg:pt-14">
         <SectionHeading

@@ -386,3 +386,45 @@ node scripts/preflight.mjs
 La matriz sube a **61/100**. Sigue sin poder cobrar hasta configurar el PSP, y
 sin KYC no puede operar contenido adulto ni retiros. Declarar 100% seria falso.
 
+
+---
+
+## 12. Iteracion 5: video editorial y acabado cristal/prisma
+
+Fecha de corte: 11 de noviembre de 2026 (quinta pasada).
+
+### Medios en movimiento
+
+Los siete videos subidos al repositorio se optimizaron de 87 MB a ~4 MB en
+total: H.264 a 720p, sin audio, con póster propio y servidos desde
+public/media/video para permitir rangos y caché. Los originales 4K siguen en el
+historial de git, no en el despliegue.
+
+- Portada: video silencioso en bucle, con póster, preload=metadata y respeto a
+  prefers-reduced-motion y al ahorro de datos.
+- Salones en vivo: el video del salón solo se reproduce cuando la persona ya
+  puede entrar; si no, se muestra la fotografía.
+- Sala de proyección en portada y /clips: reproduce al pasar el cursor o tocar.
+
+### Acabado
+
+- Botones con cristal 3D: bisel interno, reflejo que barre al pasar el cursor y
+  hundido real al pulsar; desactivado con movimiento reducido.
+- Divisor doble animado con cereza, platino, blanco perlado y verde limón en
+  PageHero, SectionCard, cabecera móvil y pie de página.
+
+### Pruebas
+
+``sh
+npx tsc --noEmit   # 0 errores
+npm test           # 9 archivos, 56 pruebas
+npx eslint .       # 0 errores, 16 avisos preexistentes
+npm run build      # build Vercel correcto
+``n
+### Matriz ajustada
+
+Interfaz y experiencia sube a 10/10 por el acabado y el video; almacenamiento y
+comunicación sube a 2/5 por la tubería de medios optimizada. El total pasa a
+**63/100**. Sigue sin poder cobrar ni verificar identidad: son bloqueos de
+terceros, no de código.
+

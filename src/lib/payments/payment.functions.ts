@@ -143,6 +143,7 @@ export const startCheckout = createServerFn({ method: "POST" })
 
 export type MyOrder = {
   id: string;
+  itemId: string;
   label: string;
   amountMXN: number;
   status: string;
@@ -160,6 +161,7 @@ export const listMyOrders = createServerFn({ method: "GET" })
       const orders = await read(context.userId);
       return orders.map((order) => ({
         id: order.id,
+        itemId: order.item_id,
         label: order.item_label,
         amountMXN: order.gross_mxn,
         status: order.status,

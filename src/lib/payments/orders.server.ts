@@ -138,6 +138,77 @@ export type CreateOrderResult =
   | { ok: true; order: OrderRow; reused: boolean }
   | { ok: false; code: OrderErrorCode; message: string };
 
+/**
+ * Precio de una pieza publicada en la base de datos.
+ *
+ * Solo se aceptan piezas publicadas. El importe, el título y la creadora se
+ * leen del registro del servidor; el cliente únicamente envía el id.
+ */
+async function resolveContentPrice(
+  input: CreateOrderInput,
+): Promise<
+  | { ok: true; priceMXN: number; label: string; revenueShare: number }
+  | { ok: false; message: string }
+> {
+  if (input.kind !== "clip" && input.kind !== "ppv") {
+    return { ok: false, message: "Esta compra no está disponible." };
+  }
+  if (!process.env["SUPABASE_URL"] || !process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
+    return { ok: false, message: "El catálogo no está configurado." };
+  }
+
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const client = supabaseAdmin as unknown as {
+      from: (table: string) => {
+        select: (columns: string) => {
+          eq: (
+            column: string,
+            value: string,
+          ) => {
+            eq: (
+              column: string,
+              value: string,
+            ) => {
+              limit: (n: number) => Promise<{
+                data: Record<string, unknown>[] | null;
+                error: { message: string } | null;
+              }>;
+            };
+          };
+        };
+      };
+    };
+    const { data, error } = await client
+      .from("xclusive_content")
+      .select("id, title, price_mxn, visibility, creator_slug")
+      .eq("id", input.itemId)
+      .eq("status", "published")
+      .limit(1);
+
+    if (error || !data || data.length === 0) {
+      return { ok: false, message: "La pieza ya no está disponible." };
+    }
+    const row = data[0]!;
+    const price = Math.max(0, Math.round(Number(row["price_mxn"] ?? 0)));
+    if (row["visibility"] !== "ppv" || price <= 0) {
+      return { ok: false, message: "Esta pieza no se cobra en línea." };
+    }
+
+    const creator = createSeedState().creators.find((c) => c.slug === row["creator_slug"]);
+    if (!creator) return { ok: false, message: "La creadora ya no está disponible." };
+
+    return {
+      ok: true,
+      priceMXN: price,
+      label: `${String(row["title"]).slice(0, 100)} · ${creator.name}`,
+      revenueShare: creator.revenueShare,
+    };
+  } catch {
+    return { ok: false, message: "No se pudo consultar el catálogo." };
+  }
+}
+
 const MIN_TIP_MXN = 10;
 const MAX_TIP_MXN = 20_000;
 
@@ -190,8 +261,13 @@ export function resolveServerPrice(
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
-  const resolved = resolveServerPrice(input);
-  if (!resolved.ok) return { ok: false, code: "invalid", message: resolved.message };
+  let resolved = resolveServerPrice(input);
+  if (!resolved.ok) {
+    // Piezas publicadas por creadoras: el precio vive en la base de datos.
+    const remote = await resolveContentPrice(input);
+    if (!remote.ok) return { ok: false, code: "invalid", message: resolved.message };
+    resolved = remote;
+  }
   if (resolved.priceMXN <= 0)
     return { ok: false, code: "invalid", message: "Este artículo no se cobra en línea." };
 

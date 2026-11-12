@@ -62,6 +62,7 @@ import {
   monthlySeries,
 } from "@/lib/selectors";
 import { AUTH_MODE } from "@/lib/auth/mode";
+import { ServerContentComposer } from "@/components/platform/ServerContentComposer";
 import { getCreatorEarnings, type CreatorEarnings } from "@/lib/payments/operations.functions";
 import { useApp, useDashboardData, useMyCreator } from "@/lib/store";
 import type { CoverKey, Creator, LiveRoom, PostVisibility, Tier } from "@/lib/types";
@@ -650,184 +651,189 @@ function ContenidoTab({ creator }: { creator: Creator }) {
   };
 
   return (
-    <div className="grid gap-5 lg:grid-cols-12">
-      <SectionCard
-        title="Nueva publicación"
-        description="Decide quién puede verla desde el primer momento."
-        className="lg:col-span-5"
-      >
-        <form onSubmit={submit} className="space-y-4">
-          <Field label="Título" required>
-            <Input
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="El nombre de la pieza"
-              required
-            />
-          </Field>
-          <Field
-            label="Texto"
-            required
-            hint="Contenido editorial, no explícito. La moderación puede revisarlo."
-          >
-            <Textarea
-              value={form.body}
-              onChange={(e) => setForm({ ...form, body: e.target.value })}
-              placeholder="Describe la pieza, el proceso o la intención."
-              required
-            />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Audiencia">
-              <Select
-                value={form.visibility}
-                onChange={(e) => setForm({ ...form, visibility: e.target.value as PostVisibility })}
-              >
-                <option value="public">Público</option>
-                <option value="members">Miembros</option>
-                <option value="tier">Tier específico</option>
-                <option value="ppv">PPV</option>
-                <option value="vault">Bóveda (VIP+)</option>
-              </Select>
-            </Field>
-            <Field label="Portada">
-              <Select
-                value={form.cover}
-                onChange={(e) => setForm({ ...form, cover: e.target.value as CoverKey })}
-              >
-                {COVERS.map((cover) => (
-                  <option key={cover} value={cover}>
-                    {cover}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-          {form.visibility === "tier" ? (
-            <Field label="Tier">
-              <Select
-                value={form.tierId}
-                onChange={(e) => setForm({ ...form, tierId: e.target.value })}
-              >
-                {creator.tiers.map((tier) => (
-                  <option key={tier.id} value={tier.id}>
-                    {tier.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          ) : null}
-          {form.visibility === "ppv" ? (
-            <Field
-              label={`Precio (${currency})`}
-              hint="Se muestra desglose de comisiones antes de confirmar."
-            >
+    <div className="space-y-5">
+      {AUTH_MODE === "live" ? <ServerContentComposer /> : null}
+      <div className="grid gap-5 lg:grid-cols-12">
+        <SectionCard
+          title="Nueva publicación"
+          description="Decide quién puede verla desde el primer momento."
+          className="lg:col-span-5"
+        >
+          <form onSubmit={submit} className="space-y-4">
+            <Field label="Título" required>
               <Input
-                type="number"
-                min={0}
-                value={form.priceMXN}
-                onChange={(e) => setForm({ ...form, priceMXN: Number(e.target.value) })}
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="El nombre de la pieza"
+                required
               />
             </Field>
-          ) : null}
-          <Field label="Etiquetas" hint="Separadas por coma.">
-            <Input
-              value={form.tags}
-              onChange={(e) => setForm({ ...form, tags: e.target.value })}
-              placeholder="editorial, luz, proceso"
-            />
-          </Field>
-          <Switch
-            checked={form.mature}
-            onChange={(value) => setForm({ ...form, mature: value })}
-            label="Marcar como 18+"
-            description="El contenido adulto sigue deshabilitado hasta completar verificación y revisión legal."
-          />
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  body: suggestCaption(prev.title || "archivo", creator),
-                }))
-              }
+            <Field
+              label="Texto"
+              required
+              hint="Contenido editorial, no explícito. La moderación puede revisarlo."
             >
-              <Sparkles className="h-3.5 w-3.5" /> Sugerir texto
-            </Button>
-            <Button type="submit" size="sm">
-              <Plus className="h-3.5 w-3.5" /> Publicar
-            </Button>
-          </div>
-        </form>
-      </SectionCard>
-
-      <div className="space-y-4 lg:col-span-7">
-        <ClipsManager creator={creator} />
-        {creator.posts.length === 0 ? (
-          <EmptyState
-            title="Tu feed está en blanco."
-            description="Publica la primera pieza para abrir la conversación."
-            icon={<ImageIcon className="h-6 w-6" />}
-          />
-        ) : (
-          creator.posts.map((post) => (
-            <article
-              key={post.id}
-              className="overflow-hidden rounded-xl border border-hairline bg-card/50"
-            >
-              <Cover kind={post.cover} alt="" className="aspect-[16/7] w-full">
-                <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                <div className="absolute left-3 top-3 flex gap-1.5">
-                  <Badge
-                    tone={
-                      post.visibility === "public"
-                        ? "success"
-                        : post.visibility === "ppv"
-                          ? "warning"
-                          : "signal"
-                    }
-                  >
-                    {post.visibility}
-                  </Badge>
-                  {post.mature ? <Badge tone="outline">18+</Badge> : null}
-                </div>
-              </Cover>
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-serif text-xl text-pearl">{post.title}</h3>
-                    <p className="mt-1 text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
-                      {formatDate(post.createdAt)}
-                    </p>
-                  </div>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => {
-                      const result = deletePost(creator.id, post.id);
-                      toast(result.message);
-                    }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Archivar
-                  </Button>
-                </div>
-                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                  {post.excerpt}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {post.tags.map((tag) => (
-                    <span key={tag} className="chip">
-                      #{tag}
-                    </span>
+              <Textarea
+                value={form.body}
+                onChange={(e) => setForm({ ...form, body: e.target.value })}
+                placeholder="Describe la pieza, el proceso o la intención."
+                required
+              />
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Audiencia">
+                <Select
+                  value={form.visibility}
+                  onChange={(e) =>
+                    setForm({ ...form, visibility: e.target.value as PostVisibility })
+                  }
+                >
+                  <option value="public">Público</option>
+                  <option value="members">Miembros</option>
+                  <option value="tier">Tier específico</option>
+                  <option value="ppv">PPV</option>
+                  <option value="vault">Bóveda (VIP+)</option>
+                </Select>
+              </Field>
+              <Field label="Portada">
+                <Select
+                  value={form.cover}
+                  onChange={(e) => setForm({ ...form, cover: e.target.value as CoverKey })}
+                >
+                  {COVERS.map((cover) => (
+                    <option key={cover} value={cover}>
+                      {cover}
+                    </option>
                   ))}
+                </Select>
+              </Field>
+            </div>
+            {form.visibility === "tier" ? (
+              <Field label="Tier">
+                <Select
+                  value={form.tierId}
+                  onChange={(e) => setForm({ ...form, tierId: e.target.value })}
+                >
+                  {creator.tiers.map((tier) => (
+                    <option key={tier.id} value={tier.id}>
+                      {tier.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
+            {form.visibility === "ppv" ? (
+              <Field
+                label={`Precio (${currency})`}
+                hint="Se muestra desglose de comisiones antes de confirmar."
+              >
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.priceMXN}
+                  onChange={(e) => setForm({ ...form, priceMXN: Number(e.target.value) })}
+                />
+              </Field>
+            ) : null}
+            <Field label="Etiquetas" hint="Separadas por coma.">
+              <Input
+                value={form.tags}
+                onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                placeholder="editorial, luz, proceso"
+              />
+            </Field>
+            <Switch
+              checked={form.mature}
+              onChange={(value) => setForm({ ...form, mature: value })}
+              label="Marcar como 18+"
+              description="El contenido adulto sigue deshabilitado hasta completar verificación y revisión legal."
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    body: suggestCaption(prev.title || "archivo", creator),
+                  }))
+                }
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Sugerir texto
+              </Button>
+              <Button type="submit" size="sm">
+                <Plus className="h-3.5 w-3.5" /> Publicar
+              </Button>
+            </div>
+          </form>
+        </SectionCard>
+
+        <div className="space-y-4 lg:col-span-7">
+          <ClipsManager creator={creator} />
+          {creator.posts.length === 0 ? (
+            <EmptyState
+              title="Tu feed está en blanco."
+              description="Publica la primera pieza para abrir la conversación."
+              icon={<ImageIcon className="h-6 w-6" />}
+            />
+          ) : (
+            creator.posts.map((post) => (
+              <article
+                key={post.id}
+                className="overflow-hidden rounded-xl border border-hairline bg-card/50"
+              >
+                <Cover kind={post.cover} alt="" className="aspect-[16/7] w-full">
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+                  <div className="absolute left-3 top-3 flex gap-1.5">
+                    <Badge
+                      tone={
+                        post.visibility === "public"
+                          ? "success"
+                          : post.visibility === "ppv"
+                            ? "warning"
+                            : "signal"
+                      }
+                    >
+                      {post.visibility}
+                    </Badge>
+                    {post.mature ? <Badge tone="outline">18+</Badge> : null}
+                  </div>
+                </Cover>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-serif text-xl text-pearl">{post.title}</h3>
+                      <p className="mt-1 text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
+                        {formatDate(post.createdAt)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => {
+                        const result = deletePost(creator.id, post.id);
+                        toast(result.message);
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Archivar
+                    </Button>
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                    {post.excerpt}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {post.tags.map((tag) => (
+                      <span key={tag} className="chip">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))
-        )}
+              </article>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
